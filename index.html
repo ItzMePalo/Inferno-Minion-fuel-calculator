@@ -214,7 +214,7 @@ function InfernoFuelCalculator() {
       function getBuyOrderPrice(key) {
         const prod = products[key];
         if (!prod) return 0;
-        if (prod.sell_summry && prod.sekk_summary.length > 0) return prod.sell_summary[0].pricePerUnit;
+        if (prod.sell_summary && prod.sell_summary.length > 0) return prod.sell_summary[0].pricePerUnit;
         if (prod.quick_status?.buyPrice) return prod.quick_status.buyPrice;
         return 0;
       }
