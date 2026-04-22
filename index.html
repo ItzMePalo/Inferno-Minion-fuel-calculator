@@ -1,69 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inferno Fuel Calculator</title>
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-        body { margin: 0; background-color: #000; }
-        /* Hide scrollbar for cleaner look if desired, or keep default */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0c0300; }
-        ::-webkit-scrollbar-thumb { background: #301810; borderRadius: 10px; }
-    </style>
+<meta charset="UTF-8">
+<title>Inferno Fuel Calculator</title>
 </head>
-<body>
-    <div id="root"></div>
+<body style="margin:0; font-family: Georgia, serif; background: radial-gradient(ellipse at top, #180700 0%, #0c0300 55%, #000 100%);">
 
-    <script type="text/babel">
-        const { useState, useMemo, useCallback } = React;
+<div id="app" style="max-width:620px;margin:0 auto;padding:20px;"></div>
 
-        // ─── CRAFT CHAIN CONSTANTS ───────────────────────────────────────────────────
-        const CRUDE_GABAGOOL_PER_FUEL_GABAGOOL = 24;
-        const FUEL_GABAGOOL_PER_HEAVY_GABAGOOL = 24;
-        const HEAVY_GABAGOOL_PER_HYPERGOLIC = 12;
-        const CRUDE_GABAGOOL_PER_VERY_CRUDE_GABAGOOL = 192;
-        const SULPHURIC_COAL_PER_FUEL_GABAGOOL_CRAFT = 1;
-        const SULPHURIC_COAL_PER_HEAVY_GABAGOOL_CRAFT = 1;
-        const SULPHURIC_COAL_PER_HYPERGOLIC_CRAFT = 1;
+<script>
+// ================= CONSTANTS =================
+const CRUDE_PER_FUEL = 24;
+const FUEL_PER_HEAVY = 24;
+const HEAVY_PER_HYPER = 12;
 
-        const FUEL_GABAGOOL_NEEDED_PER_HYPERGOLIC = HEAVY_GABAGOOL_PER_HYPERGOLIC * FUEL_GABAGOOL_PER_HEAVY_GABAGOOL;
-        const CRUDE_GABAGOOL_PER_HYPERGOLIC = FUEL_GABAGOOL_NEEDED_PER_HYPERGOLIC * CRUDE_GABAGOOL_PER_FUEL_GABAGOOL;
-        const SULPHURIC_COAL_PER_HYPERGOLIC = 
-            FUEL_GABAGOOL_NEEDED_PER_HYPERGOLIC * SULPHURIC_COAL_PER_FUEL_GABAGOOL_CRAFT + 
-            HEAVY_GABAGOOL_PER_HEAVY_GABAGOOL * SULPHURIC_COAL_PER_HEAVY_GABAGOOL_CRAFT + 
-            SULPHURIC_COAL_PER_HYPERGOLIC_CRAFT; 
+const CRUDE_PER_HYPER = CRUDE_PER_FUEL * FUEL_PER_HEAVY * HEAVY_PER_HYPER;
+const SULPHUR_PER_HYPER = 301;
 
-        const DISTILLATES_PER_FUEL = 6;
-        const INFERNO_FUEL_BLOCKS_PER_FUEL = 2;
-        const INFERNO_FUEL_BLOCK_BITS_COST = 75;
-        const SULPHURIC_COAL_PER_RECIPE_OUTPUT = 4;
-        const ENCHANTED_COAL_PER_SULPHURIC_COAL_RECIPE = 4;
-        const ENCHANTED_SULPHUR_PER_SULPHURIC_COAL_RECIPE = 1;
-        const ENCHANTED_COAL_PER_SULPHURIC_COAL = 1.0;
-        const ENCHANTED_SULPHUR_PER_SULPHURIC_COAL = 0.25;
-        const RAW_COAL_PER_ENCHANTED_COAL = 160;
-        const RAW_SULPHUR_PER_ENCHANTED_SULPHUR = 160;
-        const RAW_COAL_PER_SULPHURIC_COAL = 160;
-        const RAW_SULPHUR_PER_SULPHURIC_COAL = 40;
+const DIST_PER_FUEL = 6;
+const BLOCKS_PER_FUEL = 2;
 
-        const BAZAAR_KEYS = {
-            crudeGabagool: "CRUDE_GABAGOOL",
-            veryCrudeGabagool: "VERY_CRUDE_GABAGOOL",
-            sulphuricCoal: "SULPHURIC_COAL",
-            enchantedCoal: "ENCHANTED_COAL",
-            enchantedSulphur: "ENCHANTED_SULPHUR",
-            rawCoal: "COAL",
-            rawSulphur: "SULPHUR",
-            gabagoolDistillate: "GABAGOOL_DISTILLATE",
-        };
+// ================= STATE =================
+let state = {
+  crude: 0,
+  veryCrude: 0,
+  dist: "",
+  blocks: "",
+  minions: 10
+};
 
-        function fmt(n) { return n === 0 ? "0" : Math.floor(n).toLocaleString(); }
-        function fmtDec(n, dec = 2) { return n === 0 ? "0" : n.toLocaleString(undefined, { maximumFractionDigits: dec }); }
-        function p(s) { return parseFloat(s) || 0; }
+// ================= UTILS =================
+function fmt(n){
+  return Math.floor(n).toLocaleString();
+}
 
-        // ─── UI COMPONENTS ───────────────────────────────────────────────────────────
-        function InfoRow({ label, value, sub,
+// ================= CALC =================
+function calculate(){
+  const crude = parseInt(state.crude)||0;
+  const very = parseInt(state.veryCrude)||0;
+
+  const crudeTotal = crude + very*192;
+  const hyper = Math.floor(crudeTotal / CRUDE_PER_HYPER);
+
+  const distLimit = state.dist === "" ? hyper : Math.floor(state.dist / DIST_PER_FUEL);
+  const blockLimit = state.blocks === "" ? hyper : Math.floor(state.blocks / BLOCKS_PER_FUEL);
+
+  const maxFuel = Math.min(hyper, distLimit, blockLimit);
+  const shortfall = Math.max(0, state.minions - maxFuel);
+
+  return { crudeTotal, hyper, maxFuel, shortfall };
+}
+
+// ================= UI =================
+function render(){
+  const calc = calculate();
+
+  document.getElementById("app").innerHTML = `
+    <div style="text-align:center;color:#ff6a00;">
+      <h2>🔥 Inferno Fuel Calculator</h2>
+    </div>
+
+    <div style="background:#111;padding:15px;border-radius:10px;margin-bottom:10px;">
+      <label>Minions</label><br>
+      <input type="number" value="${state.minions}" onchange="update('minions',this.value)">
+    </div>
+
+    <div style="background:#111;padding:15px;border-radius:10px;margin-bottom:10px;">
+      <label>Crude Gabagool</label><br>
+      <input type="number" value="${state.crude}" onchange="update('crude',this.value)">
+
+      <br><br>
+
+      <label>Very Crude Gabagool</label><br>
+      <input type="number" value="${state.veryCrude}" onchange="update('veryCrude',this.value)">
+    </div>
+
+    <div style="background:#111;padding:15px;border-radius:10px;margin-bottom:10px;">
+      <label>Distillates (optional)</label><br>
+      <input type="number" value="${state.dist}" onchange="update('dist',this.value)">
+
+      <br><br>
+
+      <label>Fuel Blocks (optional)</label><br>
+      <input type="number" value="${state.blocks}" onchange="update('blocks',this.value)">
+    </div>
+
+    <div style="background:#111;padding:15px;border-radius:10px;color:#eee;">
+      <h3>Results</h3>
+      <p>Total Crude: ${fmt(calc.crudeTotal)}</p>
+      <p>Hypergolic: ${fmt(calc.hyper)}</p>
+      <p>Fuel Possible: ${fmt(calc.maxFuel)}</p>
+      <p>Shortfall: ${fmt(calc.shortfall)}</p>
+    </div>
+  `;
+}
+
+// ================= UPDATE =================
+function update(key, value){
+  state[key] = value;
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
