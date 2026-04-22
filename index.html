@@ -211,36 +211,36 @@ function InfernoFuelCalculator() {
       //         instabuy price  = buy_summary[0].pricePerUnit  (what you pay to buy instantly → use for items you're BUYING)
       // For ingredients we're BUYING, use instabuy (buy_summary) = higher price
       // For items we SELL, use instasell (sell_summary)
-      function getInstabuyPrice(key) {
+      function getBuyOrderPrice(key) {
         const prod = products[key];
         if (!prod) return 0;
-        if (prod.buy_summary && prod.buy_summary.length > 0) return prod.buy_summary[0].pricePerUnit;
+        if (prod.sell_summry && prod.sekk_summary.length > 0) return prod.sell_summary[0].pricePerUnit;
         if (prod.quick_status?.buyPrice) return prod.quick_status.buyPrice;
         return 0;
       }
 
       // Sulphuric Coal — we're buying it
-      const sulphuricCoalPrice = getInstabuyPrice(BAZAAR_KEYS.sulphuricCoal);
+      const sulphuricCoalPrice = getBuyOrderPrice(BAZAAR_KEYS.sulphuricCoal);
       if (sulphuricCoalPrice > 0) { setPriceSulphuricCoal(Math.round(sulphuricCoalPrice).toString()); updatedCount++; }
 
       // Enchanted Coal — we're buying it
-      const enchantedCoalPrice = getInstabuyPrice(BAZAAR_KEYS.enchantedCoal);
+      const enchantedCoalPrice = getBuyOrderPrice(BAZAAR_KEYS.enchantedCoal);
       if (enchantedCoalPrice > 0) { setPriceEnchantedCoal(Math.round(enchantedCoalPrice).toString()); updatedCount++; }
 
       // Enchanted Sulphur — we're buying it
-      const enchantedSulphurPrice = getInstabuyPrice(BAZAAR_KEYS.enchantedSulphur);
+      const enchantedSulphurPrice = getBuyOrderPrice(BAZAAR_KEYS.enchantedSulphur);
       if (enchantedSulphurPrice > 0) { setPriceEnchantedSulphur(Math.round(enchantedSulphurPrice).toString()); updatedCount++; }
 
       // Raw Coal — we're buying it
-      const rawCoalPrice = getInstabuyPrice(BAZAAR_KEYS.rawCoal);
+      const rawCoalPrice = getBuyOrderPrice(BAZAAR_KEYS.rawCoal);
       if (rawCoalPrice > 0) { setPriceRawCoal(rawCoalPrice.toFixed(1)); updatedCount++; }
 
       // Raw Sulphur — we're buying it
-      const rawSulphurPrice = getInstabuyPrice(BAZAAR_KEYS.rawSulphur);
+      const rawSulphurPrice = getBuyOrderPrice(BAZAAR_KEYS.rawSulphur);
       if (rawSulphurPrice > 0) { setPriceRawSulphur(rawSulphurPrice.toFixed(1)); updatedCount++; }
 
       // Gabagool Distillate — we're buying it
-      const gabagoolDistillatePrice = getInstabuyPrice(BAZAAR_KEYS.gabagoolDistillate);
+      const gabagoolDistillatePrice = getBuyOrderPrice(BAZAAR_KEYS.gabagoolDistillate);
       if (gabagoolDistillatePrice > 0) { setPriceGabagoolDistillate(Math.round(gabagoolDistillatePrice).toString()); updatedCount++; }
 
       // Note: Crude Gabagool and Very Crude Gabagool are produced by your minions, not bought.
@@ -472,12 +472,12 @@ function InfernoFuelCalculator() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
             {[
-              ["Sulphuric Coal (instabuy)", priceSulphuricCoal, setPriceSulphuricCoal, "fetched from Bazaar"],
-              ["Enchanted Coal (instabuy)", priceEnchantedCoal, setPriceEnchantedCoal, "fetched from Bazaar"],
-              ["Enchanted Sulphur (instabuy)", priceEnchantedSulphur, setPriceEnchantedSulphur, "fetched from Bazaar"],
-              ["Raw Coal (instabuy)", priceRawCoal, setPriceRawCoal, "fetched from Bazaar"],
-              ["Raw Sulphur (instabuy)", priceRawSulphur, setPriceRawSulphur, "fetched from Bazaar"],
-              ["Gabagool Distillate (instabuy)", priceGabagoolDistillate, setPriceGabagoolDistillate, "fetched from Bazaar"],
+              ["Sulphuric Coal (buyorder)", priceSulphuricCoal, setPriceSulphuricCoal, "fetched from Bazaar"],
+              ["Enchanted Coal (buyorder)", priceEnchantedCoal, setPriceEnchantedCoal, "fetched from Bazaar"],
+              ["Enchanted Sulphur (buyorder)", priceEnchantedSulphur, setPriceEnchantedSulphur, "fetched from Bazaar"],
+              ["Raw Coal (buyorder)", priceRawCoal, setPriceRawCoal, "fetched from Bazaar"],
+              ["Raw Sulphur (buyorder)", priceRawSulphur, setPriceRawSulphur, "fetched from Bazaar"],
+              ["Gabagool Distillate (buyorder)", priceGabagoolDistillate, setPriceGabagoolDistillate, "fetched from Bazaar"],
               ["Inferno Fuel Block (coin value)", priceInfernoFuelBlock, setPriceInfernoFuelBlock, "Bits Shop — enter manually"],
             ].map(([label, val, setter, hint]) => (
               <div key={label}>
