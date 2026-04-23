@@ -1,714 +1,855 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Inferno Fuel Calculator</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inferno Fuel Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #070402;
+    --surface:   #100805;
+    --surface2:  #180c07;
+    --border:    #2a160a;
+    --border2:   #3a2010;
+    --text:      #f0e8dc;
+    --muted:     #9a8070;
+    --dim:       #604030;
+    --accent:    #ff6a00;
+    --accent2:   #ff9f4a;
+    --gold:      #ffcc55;
+    --green:     #72ff72;
+    --red:       #ff6060;
+    --blue:      #60c8ff;
+    --yellow-sc: #ffdd88;
+  }
 
-  <!-- React -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <!-- Babel (THIS is the fix) -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+html { color-scheme: dark; scroll-behavior: smooth; }
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Crimson Pro’, Georgia, serif;
+font-size: 17px;
+min-height: 100vh;
+overflow-x: hidden;
+}
+
+/* Lava texture overlay */
+body::before {
+content: ‘’;
+position: fixed; inset: 0; z-index: 0; pointer-events: none;
+background:
+radial-gradient(ellipse 80% 40% at 50% 0%, rgba(255,80,0,0.07) 0%, transparent 60%),
+radial-gradient(ellipse 40% 60% at 10% 100%, rgba(200,40,0,0.05) 0%, transparent 50%),
+radial-gradient(ellipse 30% 40% at 90% 80%, rgba(255,120,0,0.04) 0%, transparent 50%);
+}
+
+/* Subtle grid */
+body::after {
+content: ‘’;
+position: fixed; inset: 0; z-index: 0; pointer-events: none;
+background-image:
+linear-gradient(rgba(255,106,0,0.025) 1px, transparent 1px),
+linear-gradient(90deg, rgba(255,106,0,0.025) 1px, transparent 1px);
+background-size: 48px 48px;
+}
+
+.wrapper {
+position: relative; z-index: 1;
+max-width: 680px;
+margin: 0 auto;
+padding: 0 20px 80px;
+}
+
+/* ── HEADER ── */
+header {
+padding: 52px 0 36px;
+text-align: center;
+border-bottom: 1px solid var(–border2);
+margin-bottom: 36px;
+animation: fadeDown 0.6s ease both;
+}
+
+.header-flame { font-size: 48px; margin-bottom: 8px; display: block; filter: drop-shadow(0 0 20px rgba(255,106,0,0.6)); animation: flicker 3s ease-in-out infinite; }
+
+@keyframes flicker {
+0%,100% { filter: drop-shadow(0 0 20px rgba(255,106,0,0.6)); }
+50%      { filter: drop-shadow(0 0 35px rgba(255,160,0,0.9)); }
+}
+
+h1 {
+font-family: ‘Cinzel’, serif;
+font-size: 28px;
+font-weight: 900;
+letter-spacing: 0.14em;
+text-transform: uppercase;
+color: var(–accent);
+text-shadow: 0 0 30px rgba(255,106,0,0.5), 0 0 60px rgba(255,60,0,0.2);
+margin-bottom: 6px;
+}
+
+.header-sub {
+font-size: 12px;
+color: var(–dim);
+letter-spacing: 0.1em;
+text-transform: uppercase;
+}
+
+/* ── CARDS ── */
+.card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 16px;
+padding: 22px;
+margin-bottom: 14px;
+animation: fadeUp 0.5s ease both;
+}
+.card:nth-child(1) { animation-delay: 0.05s; }
+.card:nth-child(2) { animation-delay: 0.10s; }
+.card:nth-child(3) { animation-delay: 0.15s; }
+.card:nth-child(4) { animation-delay: 0.20s; }
+.card:nth-child(5) { animation-delay: 0.25s; }
+.card:nth-child(6) { animation-delay: 0.30s; }
+
+.card.card-prices  { border-color: rgba(255,200,60,0.2); }
+.card.card-results { border-color: rgba(255,106,0,0.3); }
+.card.card-results.all-good { border-color: rgba(80,255,80,0.3); }
+.card.card-sc      { border-color: rgba(255,220,80,0.22); }
+.card.card-cost    { border-color: var(–border2); }
+
+@keyframes fadeUp   { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.card-header {
+display: flex; align-items: center; gap: 8px;
+font-family: ‘Cinzel’, serif;
+font-size: 11px; font-weight: 700;
+letter-spacing: 0.12em; text-transform: uppercase;
+color: var(–accent2);
+margin-bottom: 16px;
+padding-bottom: 10px;
+border-bottom: 1px solid var(–border2);
+}
+.card.card-prices  .card-header { color: var(–gold); }
+.card.card-sc      .card-header { color: var(–yellow-sc); }
+.card.card-results .card-header { color: var(–accent2); }
+.card.card-results.all-good .card-header { color: var(–green); }
+
+/* ── INPUTS ── */
+.field { margin-bottom: 12px; }
+.field label {
+display: block;
+font-size: 11px; font-weight: 600;
+color: var(–muted);
+letter-spacing: 0.06em; text-transform: uppercase;
+margin-bottom: 5px;
+}
+.field .hint {
+font-size: 10px; color: var(–dim);
+margin-top: 3px;
+}
+
+input[type=“number”], input[type=“text”] {
+width: 100%;
+background: var(–surface2);
+border: 1px solid var(–border2);
+border-radius: 8px;
+color: var(–text);
+font-family: ‘Courier New’, monospace;
+font-size: 14px;
+padding: 9px 13px;
+outline: none;
+transition: border-color 0.15s;
+-webkit-appearance: none;
+-webkit-box-shadow: 0 0 0 1000px var(–surface2) inset;
+box-shadow: 0 0 0 1000px var(–surface2) inset;
+-webkit-text-fill-color: var(–text);
+}
+input[type=“number”]:focus, input[type=“text”]:focus { border-color: var(–accent); }
+input[type=“number”]::placeholder, input[type=“text”]::placeholder {
+color: var(–dim); -webkit-text-fill-color: var(–dim);
+}
+.card.card-prices input[type=“number”]:focus { border-color: var(–gold); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-2-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+@media (max-width: 500px) { .grid-2, .grid-2-3 { grid-template-columns: 1fr; } }
+
+/* ── FETCH BUTTON ── */
+.fetch-row { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+
+.btn-fetch {
+display: flex; align-items: center; gap: 7px;
+background: rgba(96,200,255,0.08);
+border: 1px solid rgba(96,200,255,0.3);
+color: var(–blue);
+border-radius: 10px;
+padding: 10px 18px;
+font-size: 13px; font-weight: 600;
+font-family: ‘Cinzel’, serif;
+letter-spacing: 0.06em;
+cursor: pointer;
+transition: all 0.15s;
+white-space: nowrap;
+}
+.btn-fetch:hover { background: rgba(96,200,255,0.14); }
+.btn-fetch:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-fetch.loading { opacity: 0.65; }
+
+.fetch-status { font-size: 12px; }
+.fetch-status.ok    { color: var(–green); }
+.fetch-status.error { color: var(–red); }
+.fetch-status.loading { color: var(–gold); }
+.fetch-time { font-size: 10px; color: var(–dim); margin-bottom: 14px; }
+
+/* ── SECTION LABELS ── */
+.section-label {
+font-family: ‘Cinzel’, serif;
+font-size: 10px; font-weight: 700;
+letter-spacing: 0.1em; text-transform: uppercase;
+color: var(–dim);
+margin: 16px 0 8px;
+padding-bottom: 5px;
+border-bottom: 1px solid var(–border);
+}
+
+/* ── INFO ROWS ── */
+.info-row {
+display: flex; justify-content: space-between; align-items: center;
+padding: 7px 12px;
+background: rgba(255,255,255,0.025);
+border-radius: 8px;
+border-left: 3px solid transparent;
+margin-bottom: 4px;
+}
+.info-row.highlight {
+background: rgba(255,100,0,0.1);
+border-left-color: var(–accent);
+}
+.info-row.muted {
+background: rgba(0,0,0,0.2);
+border-left-color: rgba(255,255,255,0.04);
+}
+.info-row.indent { padding-left: 24px; }
+.info-row-label {
+font-size: 13px; color: var(–muted);
+flex: 1; padding-right: 12px;
+}
+.info-row.muted .info-row-label { font-size: 12px; color: var(–dim); }
+.info-row-right { text-align: right; flex-shrink: 0; }
+.info-row-value {
+font-family: ‘Courier New’, monospace;
+font-size: 14px; font-weight: 700;
+color: var(–text);
+}
+.info-row.highlight .info-row-value { color: var(–accent2); }
+.info-row.muted .info-row-value { font-size: 12px; color: #7a6050; }
+.info-row-sub { font-size: 10px; color: #555; margin-top: 1px; }
+
+/* ── STATUS BANNER ── */
+.status-banner {
+text-align: center;
+padding: 10px 0 14px;
+margin-bottom: 4px;
+}
+.status-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+.status-text {
+font-family: ‘Cinzel’, serif;
+font-size: 13px; font-weight: 700;
+letter-spacing: 0.08em; text-transform: uppercase;
+color: var(–accent2);
+}
+.status-text.ok  { color: var(–green); }
+.status-text.warn { color: var(–accent2); }
+
+hr.divider {
+border: none;
+border-top: 1px solid var(–border);
+margin: 10px 0;
+}
+
+/* ── COST COMPARISON ROWS ── */
+.cost-route {
+display: flex; justify-content: space-between; align-items: center;
+padding: 9px 13px; border-radius: 9px; margin-bottom: 6px;
+background: rgba(255,255,255,0.02);
+border: 1px solid rgba(255,255,255,0.05);
+transition: background 0.15s;
+}
+.cost-route.best {
+background: rgba(255,106,0,0.09);
+border-color: rgba(255,106,0,0.3);
+}
+.cost-route-label { font-size: 13px; color: var(–muted); }
+.cost-route.best .cost-route-label { color: var(–accent2); font-weight: 600; }
+.cost-route-total {
+font-family: ‘Courier New’, monospace;
+font-weight: 700; font-size: 14px;
+color: #8a7a60;
+}
+.cost-route.best .cost-route-total { font-size: 17px; color: var(–gold); }
+.cost-route-sub { font-size: 10px; color: var(–dim); margin-top: 2px; }
+
+/* ── SC COMPARISON ROWS ── */
+.sc-route {
+display: flex; justify-content: space-between; align-items: center;
+padding: 7px 11px; border-radius: 8px; margin-bottom: 4px;
+border: 1px solid rgba(255,255,255,0.04);
+background: rgba(255,255,255,0.015);
+}
+.sc-route.cheapest { background: rgba(80,255,80,0.06); border-color: rgba(80,255,80,0.18); }
+.sc-route-label { font-size: 12px; color: var(–muted); }
+.sc-route.cheapest .sc-route-label { color: var(–green); }
+.sc-route-value { font-family: ‘Courier New’, monospace; font-size: 12px; font-weight: 700; color: #7a6a50; }
+.sc-route.cheapest .sc-route-value { color: var(–green); }
+
+/* ── RECIPE FOOTER ── */
+.recipe-footer {
+background: rgba(0,0,0,0.35);
+border: 1px solid rgba(255,255,255,0.04);
+border-radius: 10px;
+padding: 14px 16px;
+font-size: 10px;
+color: var(–dim);
+line-height: 2.1;
+margin-bottom: 24px;
+}
+.recipe-footer strong { color: #7a5030; font-family: ‘Cinzel’, serif; letter-spacing: 0.06em; }
+
+/* ── HIDDEN/SHOWN ── */
+.hidden { display: none !important; }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; animation: spin 0.8s linear infinite; }
+</style>
+
 </head>
+<body>
+<div class="wrapper">
 
-<body style="margin:0;">
-  <div id="root"></div>
+  <header>
+    <span class="header-flame">🔥</span>
+    <h1>Inferno Fuel Calculator</h1>
+    <div class="header-sub">Legendary ×20 &nbsp;·&nbsp; Gabagool Distillate &nbsp;·&nbsp; Daily Fueling</div>
+  </header>
 
-  <script type="text/babel">
+  <!-- ── SETUP & STOCK ── -->
 
-// ===== PASTE YOUR CODE BELOW THIS LINE (UNCHANGED) =====
+  <div class="card" id="card-stock">
+    <div class="card-header">⚙️ &nbsp;Setup &amp; Gabagool Stock</div>
+    <div class="field">
+      <label>Number of Inferno Minions to fuel daily</label>
+      <input type="number" id="numberOfMinions" value="10" min="1" max="25" />
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Crude Gabagool owned</label>
+        <input type="number" id="crudeGabagool" placeholder="0" min="0" />
+        <div class="hint" id="crudeHint"></div>
+      </div>
+      <div class="field">
+        <label>Very Crude Gabagool owned</label>
+        <input type="number" id="veryCrudeGabagool" placeholder="0" min="0" />
+        <div class="hint" id="veryCrudeHint">= 0 Crude Gabagool equivalent</div>
+      </div>
+      <div class="field">
+        <label>Gabagool Distillates owned</label>
+        <input type="number" id="distillatesOwned" placeholder="leave blank = buying all" min="0" />
+      </div>
+      <div class="field">
+        <label>Inferno Fuel Blocks owned</label>
+        <input type="number" id="fuelBlocksOwned" placeholder="leave blank = buying all" min="0" />
+      </div>
+    </div>
+  </div>
 
-const { useState, useMemo, useCallback } = React;
+  <!-- ── PRICES ── -->
 
-// ─── CRAFT CHAIN CONSTANTS ───────────────────────────────────────────────────
-// Gabagool ladder:
-//   24 Crude Gabagool + 1 Sulphuric Coal → 1 Fuel Gabagool
-//   24 Fuel Gabagool + 1 Sulphuric Coal → 1 Heavy Gabagool
-//   12 Heavy Gabagool + 1 Sulphuric Coal → 1 Hypergolic Gabagool
-//
-// So per 1 Hypergolic Gabagool:
-//   Fuel Gabagool needed : 12 × 24 = 288
-//   Crude Gabagool needed: 288 × 24 = 6,912
-//   Sulphuric Coal needed: 288 (for Fuel Gabagool step)
-//                        + 12 (for Heavy Gabagool step)
-//                        + 1  (for Hypergolic step)
-//                        = 301
-//
-// Per 1 Inferno Minion Fuel (Legendary ×20, Gabagool Distillate):
-//   6 Gabagool Distillates + 2 Inferno Fuel Blocks + 1 Hypergolic Gabagool
-//
-// Sulphuric Coal breakdown:
-//   1 craft of Sulphuric Coal yields 4 Sulphuric Coal
-//   Recipe: 4 Enchanted Coal + 1 Enchanted Sulphur → 4 Sulphuric Coal
-//   So per 1 Sulphuric Coal you need:
-//     1 Enchanted Coal       (4 per craft ÷ 4 output = 1 Enchanted Coal per Sulphuric Coal)
-//     0.25 Enchanted Sulphur (1 per craft ÷ 4 output = 0.25 per Sulphuric Coal)
-//   Enchanted Coal = 160 raw Coal each
-//   Enchanted Sulphur = 160 raw Sulphur each
-//   So per 1 Sulphuric Coal:
-//     1 Enchanted Coal        = 160 raw Coal
-//     0.25 Enchanted Sulphur  = 40  raw Sulphur
+  <div class="card card-prices" id="card-prices">
+    <div class="card-header">💰 &nbsp;Bazaar Prices (coins each)</div>
 
-const CRUDE_GABAGOOL_PER_FUEL_GABAGOOL = 24;
-const FUEL_GABAGOOL_PER_HEAVY_GABAGOOL = 24;
-const HEAVY_GABAGOOL_PER_HYPERGOLIC = 12;
+```
+<div class="fetch-row">
+  <button class="btn-fetch" id="fetchBtn" onclick="fetchLivePrices()">
+    <span id="fetchIcon">⟳</span> Fetch Live Bazaar Prices
+  </button>
+  <span class="fetch-status" id="fetchStatus"></span>
+</div>
+<div class="fetch-time hidden" id="fetchTime"></div>
+
+<div class="section-label">Sulphuric Coal</div>
+<div class="grid-2">
+  <div class="field">
+    <label>Sulphuric Coal (instasell)</label>
+    <input type="number" id="priceSulphuricCoal" placeholder="0" min="0" />
+    <div class="hint">fetched from Bazaar</div>
+  </div>
+  <div class="field">
+    <label>Enchanted Coal (instasell)</label>
+    <input type="number" id="priceEnchantedCoal" placeholder="0" min="0" />
+    <div class="hint">fetched from Bazaar</div>
+  </div>
+  <div class="field">
+    <label>Enchanted Sulphur (instasell)</label>
+    <input type="number" id="priceEnchantedSulphur" placeholder="0" min="0" />
+    <div class="hint">fetched from Bazaar</div>
+  </div>
+  <div class="field">
+    <label>Raw Coal (instasell)</label>
+    <input type="number" id="priceRawCoal" placeholder="0" min="0" step="0.1" />
+    <div class="hint">fetched from Bazaar</div>
+  </div>
+  <div class="field">
+    <label>Raw Sulphur (instasell)</label>
+    <input type="number" id="priceRawSulphur" placeholder="0" min="0" step="0.1" />
+    <div class="hint">fetched from Bazaar</div>
+  </div>
+</div>
+
+<div class="section-label">Other Materials</div>
+<div class="grid-2">
+  <div class="field">
+    <label>Gabagool Distillate (instasell)</label>
+    <input type="number" id="priceGabagoolDistillate" placeholder="0" min="0" />
+    <div class="hint">fetched from Bazaar</div>
+  </div>
+  <div class="field">
+    <label>Inferno Fuel Block (coin value)</label>
+    <input type="number" id="priceInfernoFuelBlock" placeholder="0" min="0" />
+    <div class="hint">Bits Shop only — enter manually</div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- ── RESULTS ── -->
+
+  <div class="card card-results" id="card-results">
+    <div class="card-header">🔢 &nbsp;Results</div>
+
+```
+<div class="status-banner">
+  <span class="status-icon" id="statusIcon">⚠️</span>
+  <div class="status-text" id="statusText">Enter your stock above</div>
+</div>
+
+<div class="section-label">Gabagool Chain</div>
+<div id="resultsGabagool"></div>
+
+<div id="shortfallSection" class="hidden">
+  <div class="section-label">What You Still Need to Buy</div>
+  <div id="resultsShortfall"></div>
+</div>
+
+<div id="otherBuySection" class="hidden">
+  <div class="section-label">Other Items to Buy</div>
+  <div id="resultsOtherBuy"></div>
+</div>
+```
+
+  </div>
+
+  <!-- ── SULPHURIC COAL BREAKDOWN ── -->
+
+  <div class="card card-sc" id="card-sc">
+    <div class="card-header">⚗️ &nbsp;Sulphuric Coal — Full Breakdown</div>
+    <div id="scBreakdown"></div>
+  </div>
+
+  <!-- ── TOTAL DAILY COST ── -->
+
+  <div class="card card-cost" id="card-cost">
+    <div class="card-header">💸 &nbsp;Total Daily Cost</div>
+    <div id="costBreakdown"></div>
+    <div class="hidden" id="noPricesMsg" style="font-size:13px;color:var(--dim);padding:6px 0;">
+      Enter prices above to see cost estimates.
+    </div>
+  </div>
+
+  <!-- ── RECIPE FOOTER ── -->
+
+  <div class="recipe-footer">
+    <strong>Full Craft Chain:</strong><br>
+    24 Crude Gabagool + 1 Sulphuric Coal → 1 Fuel Gabagool<br>
+    24 Fuel Gabagool + 1 Sulphuric Coal → 1 Heavy Gabagool<br>
+    12 Heavy Gabagool + 1 Sulphuric Coal → 1 Hypergolic Gabagool<br>
+    1 Hypergolic Gabagool = 6,912 Crude Gabagool + 301 Sulphuric Coal<br>
+    4 Enchanted Coal + 1 Enchanted Sulphur → 4 Sulphuric Coal
+    &nbsp;∴ per 1 Sulphuric Coal: 1 Enchanted Coal + 0.25 Enchanted Sulphur = 160 raw Coal + 40 raw Sulphur<br>
+    6 Gabagool Distillates + 2 Inferno Fuel Blocks + 1 Hypergolic Gabagool → 1 Legendary Inferno Minion Fuel (24h, ×20 speed)
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const CRUDE_GABAGOOL_PER_FUEL_GABAGOOL       = 24;
+const FUEL_GABAGOOL_PER_HEAVY_GABAGOOL       = 24;
+const HEAVY_GABAGOOL_PER_HYPERGOLIC          = 12;
 const CRUDE_GABAGOOL_PER_VERY_CRUDE_GABAGOOL = 192;
-const FUEL_GABAGOOL_FROM_ONE_VERY_CRUDE = 8; // 1 Very Crude Gabagool + 8 Sulphuric Coal → 8 Fuel Gabagool
 
-const SULPHURIC_COAL_PER_FUEL_GABAGOOL_CRAFT = 1;
-const SULPHURIC_COAL_PER_HEAVY_GABAGOOL_CRAFT = 1;
-const SULPHURIC_COAL_PER_HYPERGOLIC_CRAFT = 1;
+const SULPHURIC_COAL_PER_FUEL_GABAGOOL_STEP  = 1; // per Fuel Gabagool crafted
+const SULPHURIC_COAL_PER_HEAVY_GABAGOOL_STEP = 1; // per Heavy Gabagool crafted
+const SULPHURIC_COAL_PER_HYPERGOLIC_STEP     = 1; // per Hypergolic Gabagool crafted
 
-const FUEL_GABAGOOL_NEEDED_PER_HYPERGOLIC = HEAVY_GABAGOOL_PER_HYPERGOLIC * FUEL_GABAGOOL_PER_HEAVY_GABAGOOL; // 288
-const CRUDE_GABAGOOL_PER_HYPERGOLIC = FUEL_GABAGOOL_NEEDED_PER_HYPERGOLIC * CRUDE_GABAGOOL_PER_FUEL_GABAGOOL; // 6,912
+const FUEL_GABAGOOL_PER_HYPERGOLIC = HEAVY_GABAGOOL_PER_HYPERGOLIC * FUEL_GABAGOOL_PER_HEAVY_GABAGOOL; // 288
+const CRUDE_GABAGOOL_PER_HYPERGOLIC = FUEL_GABAGOOL_PER_HYPERGOLIC * CRUDE_GABAGOOL_PER_FUEL_GABAGOOL; // 6912
 const SULPHURIC_COAL_PER_HYPERGOLIC =
-  FUEL_GABAGOOL_NEEDED_PER_HYPERGOLIC * SULPHURIC_COAL_PER_FUEL_GABAGOOL_CRAFT
-  + HEAVY_GABAGOOL_PER_HYPERGOLIC * SULPHURIC_COAL_PER_HEAVY_GABAGOOL_CRAFT
-  + SULPHURIC_COAL_PER_HYPERGOLIC_CRAFT; // 301
+  FUEL_GABAGOOL_PER_HYPERGOLIC * SULPHURIC_COAL_PER_FUEL_GABAGOOL_STEP +
+  HEAVY_GABAGOOL_PER_HYPERGOLIC * SULPHURIC_COAL_PER_HEAVY_GABAGOOL_STEP +
+  SULPHURIC_COAL_PER_HYPERGOLIC_STEP; // 301
 
-const DISTILLATES_PER_FUEL = 6;
-const INFERNO_FUEL_BLOCKS_PER_FUEL = 2;
-const INFERNO_FUEL_BLOCK_BITS_COST = 75;
+const DISTILLATES_PER_FUEL     = 6;
+const FUEL_BLOCKS_PER_FUEL     = 2;
+const FUEL_BLOCK_BITS_COST     = 75;
 
-// Sulphuric Coal craft yields 4 per recipe
-const SULPHURIC_COAL_PER_RECIPE_OUTPUT = 4;
-const ENCHANTED_COAL_PER_SULPHURIC_COAL_RECIPE = 4;
-const ENCHANTED_SULPHUR_PER_SULPHURIC_COAL_RECIPE = 1;
-// Per single Sulphuric Coal:
-const ENCHANTED_COAL_PER_SULPHURIC_COAL = ENCHANTED_COAL_PER_SULPHURIC_COAL_RECIPE / SULPHURIC_COAL_PER_RECIPE_OUTPUT; // 1.0
-const ENCHANTED_SULPHUR_PER_SULPHURIC_COAL = ENCHANTED_SULPHUR_PER_SULPHURIC_COAL_RECIPE / SULPHURIC_COAL_PER_RECIPE_OUTPUT; // 0.25
-const RAW_COAL_PER_ENCHANTED_COAL = 160;
-const RAW_SULPHUR_PER_ENCHANTED_SULPHUR = 160;
-// Per single Sulphuric Coal in raw mats:
-const RAW_COAL_PER_SULPHURIC_COAL = ENCHANTED_COAL_PER_SULPHURIC_COAL * RAW_COAL_PER_ENCHANTED_COAL; // 160
+// Sulphuric Coal craft: 4 Enchanted Coal + 1 Enchanted Sulphur → 4 Sulphuric Coal
+// Per 1 Sulphuric Coal: 4/4 = 1 Enchanted Coal, 1/4 = 0.25 Enchanted Sulphur
+const ENCHANTED_COAL_PER_SULPHURIC_COAL    = 1.0;   // 4 per craft ÷ 4 output
+const ENCHANTED_SULPHUR_PER_SULPHURIC_COAL = 0.25;  // 1 per craft ÷ 4 output
+const RAW_COAL_PER_ENCHANTED_COAL          = 160;
+const RAW_SULPHUR_PER_ENCHANTED_SULPHUR    = 160;
+// Per 1 Sulphuric Coal in raw mats:
+const RAW_COAL_PER_SULPHURIC_COAL    = ENCHANTED_COAL_PER_SULPHURIC_COAL * RAW_COAL_PER_ENCHANTED_COAL;       // 160
 const RAW_SULPHUR_PER_SULPHURIC_COAL = ENCHANTED_SULPHUR_PER_SULPHURIC_COAL * RAW_SULPHUR_PER_ENCHANTED_SULPHUR; // 40
 
 // ─── BAZAAR API KEYS ─────────────────────────────────────────────────────────
 const BAZAAR_KEYS = {
-  crudeGabagool:        "CRUDE_GABAGOOL",
-  veryCrudeGabagool:    "VERY_CRUDE_GABAGOOL",
-  sulphuricCoal:        "SULPHURIC_COAL",
-  enchantedCoal:        "ENCHANTED_COAL",
-  enchantedSulphur:     "ENCHANTED_SULPHUR",
-  rawCoal:              "COAL",
-  rawSulphur:           "SULPHUR",
-  gabagoolDistillate:   "GABAGOOL_DISTILLATE",
-  // Inferno Fuel Block is Bits Shop only — not on Bazaar
+  sulphuricCoal:      'SULPHURIC_COAL',
+  enchantedCoal:      'ENCHANTED_COAL',
+  enchantedSulphur:   'ENCHANTED_SULPHUR',
+  rawCoal:            'COAL',
+  rawSulphur:         'SULPHUR',
+  gabagoolDistillate: 'GABAGOOL_DISTILLATE',
+  // Crude Gabagool and Very Crude Gabagool: produced by your minions, not bought
+  // Inferno Fuel Block: Bits Shop only, not on Bazaar
 };
 
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function num(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function val(id) { return document.getElementById(id).value.trim(); }
+function filled(id) { return document.getElementById(id).value.trim() !== ''; }
+
 function fmt(n) {
-  if (n === 0) return "0";
+  if (n === 0) return '0';
   return Math.floor(n).toLocaleString();
 }
-function fmtDec(n, dec = 2) {
-  if (n === 0) return "0";
-  return n.toLocaleString(undefined, { maximumFractionDigits: dec });
+function fmtDec(n, decimals) {
+  if (n === 0) return '0';
+  return parseFloat(n.toFixed(decimals !== undefined ? decimals : 2)).toLocaleString(undefined, { maximumFractionDigits: decimals !== undefined ? decimals : 2 });
 }
-function p(s) { return parseFloat(s) || 0; }
+function fmtCoins(n) {
+  n = Math.round(n);
+  if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(1) + 'k';
+  return n.toLocaleString();
+}
 
-// ─── UI COMPONENTS ───────────────────────────────────────────────────────────
-function InfoRow({ label, value, sub, highlight, muted, indent }) {
-  return (
-    <div style={{
-      display: "flex", justifyContent: "space-between", alignItems: "center",
-      padding: indent ? "6px 12px 6px 24px" : "7px 12px",
-      background: highlight ? "rgba(255,100,0,0.12)" : muted ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.03)",
-      borderRadius: 8,
-      borderLeft: highlight ? "3px solid #ff6a00" : muted ? "3px solid rgba(255,255,255,0.04)" : "3px solid transparent",
-      marginBottom: 4,
-    }}>
-      <span style={{ color: muted ? "#605040" : "#b0a89a", fontSize: muted ? 12 : 13 }}>{label}</span>
-      <div style={{ textAlign: "right" }}>
-        <span style={{ color: highlight ? "#ffb347" : muted ? "#7a6050" : "#f0e8dc", fontFamily: "'Courier New', monospace", fontWeight: 700, fontSize: muted ? 12 : 14 }}>{value}</span>
-        {sub && <div style={{ color: "#666", fontSize: 10, marginTop: 1 }}>{sub}</div>}
-      </div>
+function infoRow(label, value, sub, cls) {
+  return `<div class="info-row${cls ? ' ' + cls : ''}">
+    <div class="info-row-label">${label}</div>
+    <div class="info-row-right">
+      <div class="info-row-value">${value}</div>
+      ${sub ? `<div class="info-row-sub">${sub}</div>` : ''}
     </div>
-  );
+  </div>`;
 }
 
-function SectionHeader({ children, icon, color }) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 7,
-      margin: "18px 0 9px",
-      borderBottom: `1px solid ${color || "rgba(255,106,0,0.18)"}`,
-      paddingBottom: 5,
-    }}>
-      <span style={{ fontSize: 14 }}>{icon}</span>
-      <span style={{ color: color ? "#ffcc55" : "#ff9f4a", fontWeight: 700, fontSize: 11, letterSpacing: "0.09em", textTransform: "uppercase" }}>{children}</span>
-    </div>
-  );
-}
+// ─── BAZAAR FETCH ─────────────────────────────────────────────────────────────
+async function fetchLivePrices() {
+  const btn     = document.getElementById('fetchBtn');
+  const icon    = document.getElementById('fetchIcon');
+  const status  = document.getElementById('fetchStatus');
+  const timeEl  = document.getElementById('fetchTime');
 
-function Card({ children, accent, style: extraStyle }) {
-  return (
-    <div style={{
-      background: "rgba(255,255,255,0.02)",
-      border: `1px solid ${accent || "rgba(255,106,0,0.18)"}`,
-      borderRadius: 14, padding: 20, marginBottom: 12,
-      ...extraStyle,
-    }}>
-      {children}
-    </div>
-  );
-}
+  btn.disabled = true;
+  btn.classList.add('loading');
+  icon.textContent = '⟳';
+  icon.classList.add('spinner');
+  status.className = 'fetch-status loading';
+  status.textContent = 'Connecting to Hypixel Bazaar API…';
 
-function CardHeader({ icon, title, accent }) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 7, marginBottom: 14,
-      borderBottom: `1px solid ${accent || "rgba(255,106,0,0.12)"}`,
-      paddingBottom: 8,
-    }}>
-      <span>{icon}</span>
-      <span style={{ color: accent ? "#ffcc55" : "#ff9f4a", fontWeight: 700, fontSize: 12, letterSpacing: "0.08em", textTransform: "uppercase" }}>{title}</span>
-    </div>
-  );
-}
+  try {
+    const res = await fetch('https://api.hypixel.net/v2/skyblock/bazaar');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!data.success) throw new Error('API returned success: false');
 
-function Divider() {
-  return <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", margin: "8px 0" }} />;
-}
+    const products = data.products;
+    let updatedCount = 0;
 
-// ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
-function InfernoFuelCalculator() {  
-  // Stock inputs
-  const [crudeGabagoolOwned, setCrudeGabagoolOwned]           = useState("");
-  const [veryCrudeGabagoolOwned, setVeryCrudeGabagoolOwned]   = useState("");
-  const [distillatesOwned, setDistillatesOwned]               = useState("");
-  const [infernoFuelBlocksOwned, setInfernoFuelBlocksOwned]   = useState("");
-  const [numberOfMinions, setNumberOfMinions]                 = useState("10");
-
-  // Manual price inputs (coins each)
-  const [priceSulphuricCoal, setPriceSulphuricCoal]           = useState("");
-  const [priceEnchantedCoal, setPriceEnchantedCoal]           = useState("");
-  const [priceEnchantedSulphur, setPriceEnchantedSulphur]     = useState("");
-  const [priceRawCoal, setPriceRawCoal]                       = useState("");
-  const [priceRawSulphur, setPriceRawSulphur]                 = useState("");
-  const [priceGabagoolDistillate, setPriceGabagoolDistillate] = useState("");
-  const [priceInfernoFuelBlock, setPriceInfernoFuelBlock]      = useState("");
-
-  // Bazaar fetch state
-  const [fetchStatus, setFetchStatus] = useState("idle"); // idle | loading | ok | error
-  const [fetchMessage, setFetchMessage] = useState("");
-  const [lastFetchTime, setLastFetchTime] = useState(null);
-
-  // ── LIVE BAZAAR FETCH (same pattern as Shard Flip Calculator) ──
-  const fetchLivePrices = useCallback(async () => {
-    setFetchStatus("loading");
-    setFetchMessage("Connecting to Hypixel Bazaar API…");
-    try {
-      const res = await fetch("https://api.hypixel.net/v2/skyblock/bazaar");
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      if (!data.success) throw new Error("API returned success: false");
-
-      const products = data.products;
-      let updatedCount = 0;
-
-      // Helper: instasell price = sell_summary[0].pricePerUnit (what buyers pay you → use for items you're SELLING)
-      //         instabuy price  = buy_summary[0].pricePerUnit  (what you pay to buy instantly → use for items you're BUYING)
-      // For ingredients we're BUYING, use instabuy (buy_summary) = higher price
-      // For items we SELL, use instasell (sell_summary)
-      function getBuyOrderPrice(key) {
-        const prod = products[key];
-        if (!prod) return 0;
-        if (prod.sell_summary && prod.sell_summary.length > 0) return prod.sell_summary[0].pricePerUnit;
-        if (prod.quick_status?.buyPrice) return prod.quick_status.buyPrice;
-        return 0;
-      }
-
-      // Sulphuric Coal — we're buying it
-      const sulphuricCoalPrice = getBuyOrderPrice(BAZAAR_KEYS.sulphuricCoal);
-      if (sulphuricCoalPrice > 0) { setPriceSulphuricCoal(Math.round(sulphuricCoalPrice).toString()); updatedCount++; }
-
-      // Enchanted Coal — we're buying it
-      const enchantedCoalPrice = getBuyOrderPrice(BAZAAR_KEYS.enchantedCoal);
-      if (enchantedCoalPrice > 0) { setPriceEnchantedCoal(Math.round(enchantedCoalPrice).toString()); updatedCount++; }
-
-      // Enchanted Sulphur — we're buying it
-      const enchantedSulphurPrice = getBuyOrderPrice(BAZAAR_KEYS.enchantedSulphur);
-      if (enchantedSulphurPrice > 0) { setPriceEnchantedSulphur(Math.round(enchantedSulphurPrice).toString()); updatedCount++; }
-
-      // Raw Coal — we're buying it
-      const rawCoalPrice = getBuyOrderPrice(BAZAAR_KEYS.rawCoal);
-      if (rawCoalPrice > 0) { setPriceRawCoal(rawCoalPrice.toFixed(1)); updatedCount++; }
-
-      // Raw Sulphur — we're buying it
-      const rawSulphurPrice = getBuyOrderPrice(BAZAAR_KEYS.rawSulphur);
-      if (rawSulphurPrice > 0) { setPriceRawSulphur(rawSulphurPrice.toFixed(1)); updatedCount++; }
-
-      // Gabagool Distillate — we're buying it
-      const gabagoolDistillatePrice = getBuyOrderPrice(BAZAAR_KEYS.gabagoolDistillate);
-      if (gabagoolDistillatePrice > 0) { setPriceGabagoolDistillate(Math.round(gabagoolDistillatePrice).toString()); updatedCount++; }
-
-      // Note: Crude Gabagool and Very Crude Gabagool are produced by your minions, not bought.
-      // Inferno Fuel Block is Bits Shop only — not on Bazaar. User enters coin value manually.
-
-      const now = new Date();
-      setLastFetchTime(`${now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`);
-      setFetchStatus("ok");
-      setFetchMessage(`✓ Updated ${updatedCount} prices from Bazaar`);
-    } catch (err) {
-      setFetchStatus("error");
-      setFetchMessage("✗ " + err.message);
+    // Use sell_summary (instasell price = what you get when you instasell)
+    function getInstasellPrice(key) {
+      const prod = products[key];
+      if (!prod) return 0;
+      if (prod.sell_summary && prod.sell_summary.length > 0) return prod.sell_summary[0].pricePerUnit;
+      if (prod.quick_status && prod.quick_status.sellPrice) return prod.quick_status.sellPrice;
+      return 0;
     }
-  }, []);
 
-  // ── CALCULATIONS ──
-  const calc = useMemo(() => {
-    const crudeOwned    = parseInt(crudeGabagoolOwned)       || 0;
-    const veryCrudeOwned = parseInt(veryCrudeGabagoolOwned)  || 0;
-    const distOwned     = parseInt(distillatesOwned)          || 0;
-    const blocksOwned   = parseInt(infernoFuelBlocksOwned)    || 0;
-    const target        = parseInt(numberOfMinions)           || 10;
+    function setPrice(inputId, price) {
+      if (price > 0) {
+        document.getElementById(inputId).value = Number.isInteger(price) ? price : price.toFixed(1);
+        updatedCount++;
+      }
+    }
 
-    // Convert all Crude Gabagool to equivalent (Very Crude Gabagool → Crude Gabagool)
-    const crudeFromVeryCrude = veryCrudeOwned * CRUDE_GABAGOOL_PER_VERY_CRUDE_GABAGOOL;
-    const totalCrudeEquivalent = crudeOwned + crudeFromVeryCrude;
+    setPrice('priceSulphuricCoal',    getInstasellPrice(BAZAAR_KEYS.sulphuricCoal));
+    setPrice('priceEnchantedCoal',    getInstasellPrice(BAZAAR_KEYS.enchantedCoal));
+    setPrice('priceEnchantedSulphur', getInstasellPrice(BAZAAR_KEYS.enchantedSulphur));
+    setPrice('priceRawCoal',          getInstasellPrice(BAZAAR_KEYS.rawCoal));
+    setPrice('priceRawSulphur',       getInstasellPrice(BAZAAR_KEYS.rawSulphur));
+    setPrice('priceGabagoolDistillate', getInstasellPrice(BAZAAR_KEYS.gabagoolDistillate));
 
-    // How many Hypergolic Gabagool can we craft from our gabagool stock?
-    const hypergolicCraftable = Math.floor(totalCrudeEquivalent / CRUDE_GABAGOOL_PER_HYPERGOLIC);
+    const now = new Date();
+    const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+    timeEl.textContent = `Last fetched at ${timeStr} · Crude & Very Crude Gabagool are minion drops · Inferno Fuel Block is Bits Shop only`;
+    timeEl.classList.remove('hidden');
 
-    // Limiting factors
-    const distEntered   = distillatesOwned !== "";
-    const blocksEntered = infernoFuelBlocksOwned !== "";
+    status.className = 'fetch-status ok';
+    status.textContent = `✓ Updated ${updatedCount} prices`;
+    recalculate();
 
-    const fuelsFromGabagool    = hypergolicCraftable;
-    const fuelsFromDistillates = distEntered  ? Math.floor(distOwned / DISTILLATES_PER_FUEL)           : hypergolicCraftable;
-    const fuelsFromBlocks      = blocksEntered ? Math.floor(blocksOwned / INFERNO_FUEL_BLOCKS_PER_FUEL) : hypergolicCraftable;
+  } catch(err) {
+    status.className = 'fetch-status error';
+    status.textContent = '✗ ' + err.message;
+    console.error('Bazaar fetch error:', err);
+  }
 
-    const maxFuelsCraftable = Math.min(fuelsFromGabagool, fuelsFromDistillates, fuelsFromBlocks);
-    const shortfall         = Math.max(0, target - maxFuelsCraftable);
-    const canFuelAllMinions = maxFuelsCraftable >= target;
-
-    // Sulphuric Coal totals for the target number of fuels
-    const totalSulphuricCoalNeeded = target * SULPHURIC_COAL_PER_HYPERGOLIC;
-
-    // Sulphuric Coal breakdown
-    const totalEnchantedCoalNeeded    = totalSulphuricCoalNeeded * ENCHANTED_COAL_PER_SULPHURIC_COAL;       // = totalSulphuricCoalNeeded × 1
-    const totalEnchantedSulphurNeeded = totalSulphuricCoalNeeded * ENCHANTED_SULPHUR_PER_SULPHURIC_COAL;    // = totalSulphuricCoalNeeded × 0.25
-    const totalRawCoalNeeded          = totalEnchantedCoalNeeded * RAW_COAL_PER_ENCHANTED_COAL;             // × 160
-    const totalRawSulphurNeeded       = totalEnchantedSulphurNeeded * RAW_SULPHUR_PER_ENCHANTED_SULPHUR;    // × 160
-
-    // Other items needed for target number of fuels
-    const totalDistillatesNeeded    = target * DISTILLATES_PER_FUEL;
-    const totalFuelBlocksNeeded     = target * INFERNO_FUEL_BLOCKS_PER_FUEL;
-    const extraDistillatesNeeded    = distEntered  ? Math.max(0, totalDistillatesNeeded - distOwned)  : totalDistillatesNeeded;
-    const extraFuelBlocksNeeded     = blocksEntered ? Math.max(0, totalFuelBlocksNeeded - blocksOwned) : totalFuelBlocksNeeded;
-
-    // ── Cost calculations ──
-    const pSC    = p(priceSulphuricCoal);
-    const pEC    = p(priceEnchantedCoal);
-    const pES    = p(priceEnchantedSulphur);
-    const pRC    = p(priceRawCoal);
-    const pRS    = p(priceRawSulphur);
-    const pDist  = p(priceGabagoolDistillate);
-    const pBlock = p(priceInfernoFuelBlock);
-
-    // Three routes for Sulphuric Coal:
-    const costSulphuricCoalDirect       = totalSulphuricCoalNeeded * pSC;
-    const costSulphuricCoalFromEnchanted = totalEnchantedCoalNeeded * pEC + totalEnchantedSulphurNeeded * pES;
-    const costSulphuricCoalFromRaw       = totalRawCoalNeeded * pRC + totalRawSulphurNeeded * pRS;
-
-    // Other costs (always the same regardless of Sulphuric Coal route)
-    const costDistillates  = !distEntered  ? extraDistillatesNeeded * pDist  : 0;
-    const costFuelBlocks   = !blocksEntered ? extraFuelBlocksNeeded * pBlock  : 0;
-    const otherCosts       = costDistillates + costFuelBlocks;
-
-    // Total cost per route
-    const totalCostBuyingSulphuricCoalDirect        = costSulphuricCoalDirect + otherCosts;
-    const totalCostCraftingFromEnchantedMaterials   = costSulphuricCoalFromEnchanted + otherCosts;
-    const totalCostCraftingFromRawMaterials          = costSulphuricCoalFromRaw + otherCosts;
-
-    // Cheapest route (only among routes where the user has entered prices)
-    const availableRoutes = [];
-    if (pSC > 0) availableRoutes.push({ label: "Buy Sulphuric Coal directly",          cost: totalCostBuyingSulphuricCoalDirect });
-    if (pEC > 0 || pES > 0) availableRoutes.push({ label: "Craft Sulphuric Coal from Enchanted mats", cost: totalCostCraftingFromEnchantedMaterials });
-    if (pRC > 0 || pRS > 0) availableRoutes.push({ label: "Craft Sulphuric Coal from raw mats",       cost: totalCostCraftingFromRawMaterials });
-    const cheapestRoute = availableRoutes.length > 0
-      ? availableRoutes.reduce((a, b) => a.cost <= b.cost ? a : b)
-      : null;
-
-    return {
-      crudeOwned, veryCrudeOwned, crudeFromVeryCrude, totalCrudeEquivalent,
-      hypergolicCraftable, maxFuelsCraftable, shortfall, target, canFuelAllMinions,
-      totalSulphuricCoalNeeded,
-      totalEnchantedCoalNeeded, totalEnchantedSulphurNeeded,
-      totalRawCoalNeeded, totalRawSulphurNeeded,
-      totalDistillatesNeeded, totalFuelBlocksNeeded,
-      extraDistillatesNeeded, extraFuelBlocksNeeded,
-      distEntered, blocksEntered,
-      costSulphuricCoalDirect, costSulphuricCoalFromEnchanted, costSulphuricCoalFromRaw,
-      costDistillates, costFuelBlocks, otherCosts,
-      totalCostBuyingSulphuricCoalDirect,
-      totalCostCraftingFromEnchantedMaterials,
-      totalCostCraftingFromRawMaterials,
-      availableRoutes, cheapestRoute,
-      pSC, pEC, pES, pRC, pRS, pDist, pBlock,
-    };
-  }, [
-    crudeGabagoolOwned, veryCrudeGabagoolOwned, distillatesOwned, infernoFuelBlocksOwned, numberOfMinions,
-    priceSulphuricCoal, priceEnchantedCoal, priceEnchantedSulphur,
-    priceRawCoal, priceRawSulphur, priceGabagoolDistillate, priceInfernoFuelBlock,
-  ]);
-
-  // ── STYLES ──
-  const inputStyle = {
-    background: "rgba(20,10,5,0.8)",
-    border: "1px solid rgba(255,106,0,0.28)",
-    borderRadius: 8, color: "#ffcfa0",
-    fontFamily: "'Courier New', monospace",
-    fontSize: 13, padding: "8px 11px",
-    width: "100%", outline: "none", boxSizing: "border-box",
-  };
-  const priceInputStyle = { ...inputStyle, borderColor: "rgba(255,200,80,0.22)", fontSize: 12 };
-  const lbl = { color: "#a09080", fontSize: 11, marginBottom: 3, display: "block", letterSpacing: "0.04em" };
-
-  const fetchButtonStyle = {
-    display: "flex", alignItems: "center", gap: 8,
-    background: fetchStatus === "ok" ? "rgba(80,255,80,0.08)" : "rgba(96,165,250,0.08)",
-    border: fetchStatus === "ok" ? "1px solid rgba(80,255,80,0.3)" : "1px solid rgba(96,165,250,0.28)",
-    color: fetchStatus === "ok" ? "#72ff72" : "#93c5fd",
-    borderRadius: 10, padding: "10px 18px",
-    fontSize: 13, fontWeight: 600, cursor: fetchStatus === "loading" ? "not-allowed" : "pointer",
-    opacity: fetchStatus === "loading" ? 0.6 : 1,
-    transition: "all 0.15s", fontFamily: "inherit",
-    whiteSpace: "nowrap",
-  };
-
-  return (
-    <div style={{
-      minHeight: "100vh",
-      background: "radial-gradient(ellipse at top, #180700 0%, #0c0300 55%, #000 100%)",
-      padding: "28px 14px",
-      fontFamily: "'Georgia', serif",
-    }}>
-      <div style={{
-        position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)",
-        width: 700, height: 280,
-        background: "radial-gradient(ellipse, rgba(255,70,0,0.06) 0%, transparent 70%)",
-        pointerEvents: "none",
-      }} />
-
-      <div style={{ maxWidth: 620, margin: "0 auto", position: "relative" }}>
-
-        {/* ── HEADER ── */}
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <div style={{ fontSize: 32 }}>🔥</div>
-          <h1 style={{
-            color: "#ff6a00", fontWeight: 900, fontSize: 20,
-            letterSpacing: "0.12em", textTransform: "uppercase", margin: "4px 0 0",
-            textShadow: "0 0 25px rgba(255,106,0,0.45)",
-          }}>Inferno Fuel Calculator</h1>
-          <p style={{ color: "#7a6040", fontSize: 11, marginTop: 4, letterSpacing: "0.05em" }}>
-            LEGENDARY (×20) · GABAGOOL DISTILLATE · 10 MINION SETUP
-          </p>
-        </div>
-
-        {/* ── SETUP & STOCK ── */}
-        <Card>
-          <CardHeader icon="⚙️" title="Setup & Gabagool Stock" />
-          <div style={{ marginBottom: 12 }}>
-            <label style={lbl}>Number of Inferno Minions to fuel daily</label>
-            <input type="number" min="1" max="25" value={numberOfMinions}
-              onChange={e => setNumberOfMinions(e.target.value)} style={inputStyle} />
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            <div>
-              <label style={lbl}>Crude Gabagool owned</label>
-              <input type="number" min="0" placeholder="0" value={crudeGabagoolOwned}
-                onChange={e => setCrudeGabagoolOwned(e.target.value)} style={inputStyle} />
-            </div>
-            <div>
-              <label style={lbl}>Very Crude Gabagool owned</label>
-              <input type="number" min="0" placeholder="0" value={veryCrudeGabagoolOwned}
-                onChange={e => setVeryCrudeGabagoolOwned(e.target.value)} style={inputStyle} />
-              <div style={{ color: "#504030", fontSize: 10, marginTop: 2 }}>
-                ≡ {fmt((parseInt(veryCrudeGabagoolOwned) || 0) * CRUDE_GABAGOOL_PER_VERY_CRUDE_GABAGOOL)} Crude Gabagool
-              </div>
-            </div>
-            <div>
-              <label style={lbl}>Gabagool Distillates owned</label>
-              <input type="number" min="0" placeholder="leave blank = buying all" value={distillatesOwned}
-                onChange={e => setDistillatesOwned(e.target.value)} style={inputStyle} />
-            </div>
-            <div>
-              <label style={lbl}>Inferno Fuel Blocks owned</label>
-              <input type="number" min="0" placeholder="leave blank = buying all" value={infernoFuelBlocksOwned}
-                onChange={e => setInfernoFuelBlocksOwned(e.target.value)} style={inputStyle} />
-            </div>
-          </div>
-        </Card>
-
-        {/* ── BAZAAR PRICES ── */}
-        <Card accent="rgba(255,200,80,0.18)">
-          <CardHeader icon="💰" title="Prices" accent="rgba(255,200,80,0.18)" />
-
-          {/* Fetch button row */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
-            <button
-              style={fetchButtonStyle}
-              disabled={fetchStatus === "loading"}
-              onClick={fetchLivePrices}
-            >
-              {fetchStatus === "loading" ? "⟳ Fetching…" : "⟳ Fetch Live Bazaar Prices"}
-            </button>
-            {fetchMessage && (
-              <span style={{
-                fontSize: 12,
-                color: fetchStatus === "ok" ? "#72ff72" : fetchStatus === "error" ? "#ff7070" : "#ffcc55",
-              }}>
-                {fetchMessage}
-              </span>
-            )}
-          </div>
-          {lastFetchTime && (
-            <div style={{ fontSize: 10, color: "#554030", marginBottom: 12 }}>
-              Last fetched at {lastFetchTime} · Crude Gabagool and Very Crude Gabagool are produced by your minions, not bought · Inferno Fuel Block is Bits Shop only (enter coin equivalent manually)
-            </div>
-          )}
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
-            {[
-              ["Sulphuric Coal (buyorder)", priceSulphuricCoal, setPriceSulphuricCoal, "fetched from Bazaar"],
-              ["Enchanted Coal (buyorder)", priceEnchantedCoal, setPriceEnchantedCoal, "fetched from Bazaar"],
-              ["Enchanted Sulphur (buyorder)", priceEnchantedSulphur, setPriceEnchantedSulphur, "fetched from Bazaar"],
-              ["Raw Coal (buyorder)", priceRawCoal, setPriceRawCoal, "fetched from Bazaar"],
-              ["Raw Sulphur (buyorder)", priceRawSulphur, setPriceRawSulphur, "fetched from Bazaar"],
-              ["Gabagool Distillate (buyorder)", priceGabagoolDistillate, setPriceGabagoolDistillate, "fetched from Bazaar"],
-              ["Inferno Fuel Block (coin value)", priceInfernoFuelBlock, setPriceInfernoFuelBlock, "Bits Shop — enter manually"],
-            ].map(([label, val, setter, hint]) => (
-              <div key={label}>
-                <label style={lbl}>{label}</label>
-                <input type="number" min="0" placeholder="0" value={val}
-                  onChange={e => setter(e.target.value)} style={priceInputStyle} />
-                {hint && <div style={{ color: "#453525", fontSize: 9, marginTop: 1 }}>{hint}</div>}
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        {/* ── RESULTS ── */}
-        <Card accent={calc.canFuelAllMinions ? "rgba(80,255,80,0.22)" : "rgba(255,106,0,0.3)"}>
-          <div style={{ textAlign: "center", marginBottom: 14 }}>
-            <div style={{ fontSize: 24 }}>{calc.canFuelAllMinions ? "✅" : "⚠️"}</div>
-            <div style={{
-              color: calc.canFuelAllMinions ? "#72ff72" : "#ff9f4a",
-              fontWeight: 700, fontSize: 14, letterSpacing: "0.06em", textTransform: "uppercase",
-            }}>
-              {calc.canFuelAllMinions
-                ? `Can fuel all ${calc.target} minions!`
-                : `Can fuel ${calc.maxFuelsCraftable} / ${calc.target} minions`}
-            </div>
-          </div>
-
-          <SectionHeader icon="🔢">Gabagool Chain</SectionHeader>
-          <InfoRow label="Crude Gabagool owned" value={fmt(calc.crudeOwned)} />
-          <InfoRow label="Very Crude Gabagool owned" value={fmt(calc.veryCrudeOwned)} sub={`= ${fmt(calc.crudeFromVeryCrude)} Crude Gabagool`} />
-          <InfoRow label="Total Crude Gabagool equivalent" value={fmt(calc.totalCrudeEquivalent)} highlight />
-          <InfoRow label="Crude Gabagool needed per Hypergolic Gabagool" value={fmt(CRUDE_GABAGOOL_PER_HYPERGOLIC)} />
-          <InfoRow label="Hypergolic Gabagool you can craft" value={fmt(calc.hypergolicCraftable)} highlight />
-          <InfoRow label="Legendary Inferno Minion Fuels you can make" value={fmt(calc.maxFuelsCraftable)} highlight />
-
-          {calc.shortfall > 0 && (
-            <>
-              <SectionHeader icon="🛒">What You Still Need to Buy</SectionHeader>
-              <InfoRow label="Additional fuels needed" value={fmt(calc.shortfall)} highlight />
-              <InfoRow label="Extra Crude Gabagool needed" value={fmt(calc.shortfall * CRUDE_GABAGOOL_PER_HYPERGOLIC)} />
-              {!calc.distEntered && (
-                <InfoRow label="Gabagool Distillates needed (total for all minions)" value={fmt(calc.totalDistillatesNeeded)} />
-              )}
-              {calc.distEntered && calc.extraDistillatesNeeded > 0 && (
-                <InfoRow label="More Gabagool Distillates needed" value={fmt(calc.extraDistillatesNeeded)} />
-              )}
-              {!calc.blocksEntered && (
-                <InfoRow label="Inferno Fuel Blocks needed (total)" value={fmt(calc.totalFuelBlocksNeeded)} sub={`${calc.totalFuelBlocksNeeded * INFERNO_FUEL_BLOCK_BITS_COST} Bits`} />
-              )}
-              {calc.blocksEntered && calc.extraFuelBlocksNeeded > 0 && (
-                <InfoRow label="More Inferno Fuel Blocks needed" value={fmt(calc.extraFuelBlocksNeeded)} sub={`${calc.extraFuelBlocksNeeded * INFERNO_FUEL_BLOCK_BITS_COST} Bits`} />
-              )}
-            </>
-          )}
-
-          {calc.canFuelAllMinions && (calc.extraDistillatesNeeded > 0 || calc.extraFuelBlocksNeeded > 0) && (
-            <>
-              <SectionHeader icon="🛒">Other Items to Buy</SectionHeader>
-              {calc.extraDistillatesNeeded > 0 && (
-                <InfoRow label="Gabagool Distillates" value={fmt(calc.extraDistillatesNeeded)} />
-              )}
-              {calc.extraFuelBlocksNeeded > 0 && (
-                <InfoRow label="Inferno Fuel Blocks" value={fmt(calc.extraFuelBlocksNeeded)} sub={`${calc.extraFuelBlocksNeeded * INFERNO_FUEL_BLOCK_BITS_COST} Bits`} />
-              )}
-            </>
-          )}
-        </Card>
-
-        {/* ── SULPHURIC COAL FULL BREAKDOWN ── */}
-        <Card accent="rgba(255,200,60,0.22)">
-          <CardHeader icon="⚗️" title="Sulphuric Coal — Full Breakdown" accent="rgba(255,200,60,0.22)" />
-
-          <InfoRow
-            label={`Sulphuric Coal needed (${calc.target} fuels × ${SULPHURIC_COAL_PER_HYPERGOLIC} per fuel)`}
-            value={fmt(calc.totalSulphuricCoalNeeded)}
-            highlight
-          />
-          <div style={{ fontSize: 10, color: "#554030", marginBottom: 10, marginTop: 2, paddingLeft: 12 }}>
-            Each Hypergolic Gabagool requires 301 Sulphuric Coal: 288 for the Fuel Gabagool crafting step + 12 for Heavy Gabagool + 1 for Hypergolic
-          </div>
-
-          <Divider />
-
-          {/* Intermediate layer */}
-          <div style={{ color: "#7a6040", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
-            Crafting materials (intermediate layer)
-          </div>
-          <div style={{ fontSize: 10, color: "#554030", marginBottom: 8, paddingLeft: 4 }}>
-            1 Sulphuric Coal craft yields 4 Sulphuric Coal using 4 Enchanted Coal + 1 Enchanted Sulphur
-          </div>
-          <InfoRow
-            label="Enchanted Coal required"
-            value={fmtDec(calc.totalEnchantedCoalNeeded)}
-            sub={`${ENCHANTED_COAL_PER_SULPHURIC_COAL} per Sulphuric Coal (4 per craft ÷ 4 output)`}
-          />
-          <InfoRow
-            label="Enchanted Sulphur required"
-            value={fmtDec(calc.totalEnchantedSulphurNeeded, 1)}
-            sub={`${ENCHANTED_SULPHUR_PER_SULPHURIC_COAL} per Sulphuric Coal (1 per craft ÷ 4 output)`}
-          />
-
-          <Divider />
-
-          {/* Raw layer */}
-          <div style={{ color: "#7a6040", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 6 }}>
-            Or in raw base materials
-          </div>
-          <div style={{ fontSize: 10, color: "#554030", marginBottom: 8, paddingLeft: 4 }}>
-            1 Enchanted Coal = 160 raw Coal · 1 Enchanted Sulphur = 160 raw Sulphur
-          </div>
-          <InfoRow label="Raw Coal" value={fmt(calc.totalRawCoalNeeded)}
-            sub={`${RAW_COAL_PER_SULPHURIC_COAL} per Sulphuric Coal (160 × 1 Enchanted Coal)`} muted />
-          <InfoRow label="Raw Sulphur" value={fmtDec(calc.totalRawSulphurNeeded)}
-            sub={`${RAW_SULPHUR_PER_SULPHURIC_COAL} per Sulphuric Coal (160 × 0.25 Enchanted Sulphur)`} muted />
-
-          {/* Cost comparison for Sulphuric Coal */}
-          {(calc.pSC > 0 || calc.pEC > 0 || calc.pES > 0 || calc.pRC > 0 || calc.pRS > 0) && (
-            <>
-              <Divider />
-              <div style={{ color: "#7a6040", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
-                Cost comparison — Sulphuric Coal only
-              </div>
-              {[
-                calc.pSC > 0 && { label: "Buy Sulphuric Coal directly", cost: calc.costSulphuricCoalDirect },
-                (calc.pEC > 0 || calc.pES > 0) && { label: "Craft from Enchanted Coal + Enchanted Sulphur", cost: calc.costSulphuricCoalFromEnchanted },
-                (calc.pRC > 0 || calc.pRS > 0) && { label: "Craft from raw Coal + raw Sulphur", cost: calc.costSulphuricCoalFromRaw },
-              ].filter(Boolean).sort((a, b) => a.cost - b.cost).map((route, i) => (
-                <div key={route.label} style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  padding: "6px 10px", borderRadius: 7, marginBottom: 4,
-                  background: i === 0 ? "rgba(80,255,80,0.07)" : "rgba(255,255,255,0.02)",
-                  border: i === 0 ? "1px solid rgba(80,255,80,0.15)" : "1px solid rgba(255,255,255,0.04)",
-                }}>
-                  <span style={{ color: i === 0 ? "#72ff72" : "#9a8a70", fontSize: 12 }}>
-                    {i === 0 ? "✅ " : ""}{route.label}
-                  </span>
-                  <span style={{ color: i === 0 ? "#72ff72" : "#8a7a60", fontFamily: "monospace", fontWeight: 700, fontSize: 12 }}>
-                    {fmt(route.cost)} coins
-                  </span>
-                </div>
-              ))}
-            </>
-          )}
-        </Card>
-
-        {/* ── TOTAL DAILY COST ── */}
-        {calc.availableRoutes.length > 0 && (
-          <Card>
-            <CardHeader icon="💸" title="Total Daily Cost (all fuels)" />
-
-            {/* Sort all routes by total cost */}
-            {[
-              calc.pSC > 0 && {
-                label: "Route: Buy Sulphuric Coal directly",
-                scCost: calc.costSulphuricCoalDirect,
-                total: calc.totalCostBuyingSulphuricCoalDirect,
-              },
-              (calc.pEC > 0 || calc.pES > 0) && {
-                label: "Route: Craft Sulphuric Coal from Enchanted materials",
-                scCost: calc.costSulphuricCoalFromEnchanted,
-                total: calc.totalCostCraftingFromEnchantedMaterials,
-              },
-              (calc.pRC > 0 || calc.pRS > 0) && {
-                label: "Route: Craft Sulphuric Coal from raw materials",
-                scCost: calc.costSulphuricCoalFromRaw,
-                total: calc.totalCostCraftingFromRawMaterials,
-              },
-            ].filter(Boolean).sort((a, b) => a.total - b.total).map((route, i) => (
-              <div key={route.label} style={{
-                padding: "11px 14px", borderRadius: 10, marginBottom: 8,
-                background: i === 0 ? "rgba(255,106,0,0.1)" : "rgba(255,255,255,0.02)",
-                border: i === 0 ? "1px solid rgba(255,106,0,0.3)" : "1px solid rgba(255,255,255,0.05)",
-              }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div>
-                    <div style={{ color: i === 0 ? "#ffb347" : "#8a7a60", fontSize: 13, fontWeight: 700 }}>
-                      {i === 0 ? "🏆 " : ""}{route.label}
-                    </div>
-                    <div style={{ color: "#554030", fontSize: 10, marginTop: 3 }}>
-                      Sulphuric Coal: {fmt(route.scCost)} coins
-                      {calc.costDistillates > 0 ? `  +  Distillates: ${fmt(calc.costDistillates)} coins` : ""}
-                      {calc.costFuelBlocks > 0 ? `  +  Fuel Blocks: ${fmt(calc.costFuelBlocks)} coins` : ""}
-                    </div>
-                  </div>
-                  <span style={{
-                    color: i === 0 ? "#ffcf80" : "#7a6a50",
-                    fontFamily: "monospace", fontWeight: 900,
-                    fontSize: i === 0 ? 18 : 14, marginLeft: 12,
-                  }}>
-                    {fmt(route.total)} coins
-                  </span>
-                </div>
-              </div>
-            ))}
-
-            {calc.pDist > 0 && !calc.distEntered && (
-              <InfoRow label={`Gabagool Distillates cost (${fmt(calc.extraDistillatesNeeded)} × ${fmt(calc.pDist)} coins)`}
-                value={`${fmt(calc.costDistillates)} coins`} />
-            )}
-            {calc.pBlock > 0 && !calc.blocksEntered && (
-              <InfoRow label={`Inferno Fuel Blocks cost (${fmt(calc.extraFuelBlocksNeeded)} × ${fmt(calc.pBlock)} coins)`}
-                value={`${fmt(calc.costFuelBlocks)} coins`} />
-            )}
-          </Card>
-        )}
-
-        {/* ── RECIPE REMINDER ── */}
-        <div style={{
-          padding: "11px 15px", background: "rgba(0,0,0,0.3)",
-          borderRadius: 9, border: "1px solid rgba(255,255,255,0.04)",
-          fontSize: 10, color: "#503820", lineHeight: 2.0, marginBottom: 20,
-        }}>
-          <span style={{ color: "#7a5030", fontWeight: 700 }}>📜 Full Craft Chain: </span>
-          24 Crude Gabagool + 1 Sulphuric Coal → 1 Fuel Gabagool<br />
-          24 Fuel Gabagool + 1 Sulphuric Coal → 1 Heavy Gabagool<br />
-          12 Heavy Gabagool + 1 Sulphuric Coal → 1 Hypergolic Gabagool<br />
-          1 Hypergolic Gabagool = 6,912 Crude Gabagool + 301 Sulphuric Coal<br />
-          4 Enchanted Coal + 1 Enchanted Sulphur → 4 Sulphuric Coal (so 1 SC = 1 Enchanted Coal + 0.25 Enchanted Sulphur = 160 raw Coal + 40 raw Sulphur)<br />
-          6 Gabagool Distillates + 2 Inferno Fuel Blocks + 1 Hypergolic Gabagool → 1 Legendary Inferno Minion Fuel (24h, ×20 speed)
-        </div>
-
-      </div>
-    </div>
-  );
+  btn.disabled = false;
+  btn.classList.remove('loading');
+  icon.classList.remove('spinner');
+  icon.textContent = '⟳';
 }
-/* --- YOUR ENTIRE CODE END --- */
 
+// ─── MAIN CALCULATION ─────────────────────────────────────────────────────────
+function recalculate() {
+  const crudeOwned      = num('crudeGabagool');
+  const veryCrudeOwned  = num('veryCrudeGabagool');
+  const distOwned       = num('distillatesOwned');
+  const blocksOwned     = num('fuelBlocksOwned');
+  const target          = Math.max(1, num('numberOfMinions') || 10);
+  const distEntered     = filled('distillatesOwned');
+  const blocksEntered   = filled('fuelBlocksOwned');
 
-// ===== MOUNT =====
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<InfernoFuelCalculator />);
+  // Very Crude Gabagool → Crude Gabagool equivalent
+  const crudeFromVeryCrude    = veryCrudeOwned * CRUDE_GABAGOOL_PER_VERY_CRUDE_GABAGOOL;
+  const totalCrudeEquivalent  = crudeOwned + crudeFromVeryCrude;
 
-  </script>
+  // Update hint
+  document.getElementById('veryCrudeHint').textContent =
+    veryCrudeOwned > 0 ? `= ${fmt(crudeFromVeryCrude)} Crude Gabagool equivalent` : '';
+
+  // How many Hypergolic Gabagool can we craft?
+  const hypergolicCraftable = Math.floor(totalCrudeEquivalent / CRUDE_GABAGOOL_PER_HYPERGOLIC);
+
+  // Fuels craftable considering all limiting factors
+  const fuelsFromGabagool    = hypergolicCraftable;
+  const fuelsFromDistillates = distEntered  ? Math.floor(distOwned / DISTILLATES_PER_FUEL) : hypergolicCraftable;
+  const fuelsFromBlocks      = blocksEntered ? Math.floor(blocksOwned / FUEL_BLOCKS_PER_FUEL) : hypergolicCraftable;
+  const maxFuelsCraftable    = Math.min(fuelsFromGabagool, fuelsFromDistillates, fuelsFromBlocks);
+  const shortfall            = Math.max(0, target - maxFuelsCraftable);
+  const canFuelAllMinions    = maxFuelsCraftable >= target;
+
+  // Sulphuric Coal for all target fuels
+  const totalSulphuricCoalNeeded     = target * SULPHURIC_COAL_PER_HYPERGOLIC;
+  const totalEnchantedCoalNeeded     = totalSulphuricCoalNeeded * ENCHANTED_COAL_PER_SULPHURIC_COAL;
+  const totalEnchantedSulphurNeeded  = totalSulphuricCoalNeeded * ENCHANTED_SULPHUR_PER_SULPHURIC_COAL;
+  const totalRawCoalNeeded           = totalEnchantedCoalNeeded * RAW_COAL_PER_ENCHANTED_COAL;
+  const totalRawSulphurNeeded        = totalEnchantedSulphurNeeded * RAW_SULPHUR_PER_ENCHANTED_SULPHUR;
+
+  // Other materials
+  const totalDistillatesNeeded   = target * DISTILLATES_PER_FUEL;
+  const totalFuelBlocksNeeded    = target * FUEL_BLOCKS_PER_FUEL;
+  const extraDistillatesNeeded   = distEntered  ? Math.max(0, totalDistillatesNeeded - distOwned)  : totalDistillatesNeeded;
+  const extraFuelBlocksNeeded    = blocksEntered ? Math.max(0, totalFuelBlocksNeeded - blocksOwned) : totalFuelBlocksNeeded;
+
+  // Prices
+  const pSC    = num('priceSulphuricCoal');
+  const pEC    = num('priceEnchantedCoal');
+  const pES    = num('priceEnchantedSulphur');
+  const pRC    = num('priceRawCoal');
+  const pRS    = num('priceRawSulphur');
+  const pDist  = num('priceGabagoolDistillate');
+  const pBlock = num('priceInfernoFuelBlock');
+
+  const costSCDirect       = totalSulphuricCoalNeeded * pSC;
+  const costSCFromEnchanted = totalEnchantedCoalNeeded * pEC + totalEnchantedSulphurNeeded * pES;
+  const costSCFromRaw      = totalRawCoalNeeded * pRC + totalRawSulphurNeeded * pRS;
+  const costDistillates    = !distEntered  ? extraDistillatesNeeded * pDist  : 0;
+  const costFuelBlocks     = !blocksEntered ? extraFuelBlocksNeeded * pBlock : 0;
+  const otherCosts         = costDistillates + costFuelBlocks;
+
+  const totalCostDirect    = costSCDirect + otherCosts;
+  const totalCostEnchanted = costSCFromEnchanted + otherCosts;
+  const totalCostRaw       = costSCFromRaw + otherCosts;
+
+  // ── RENDER RESULTS ──
+  const resultsCard = document.getElementById('card-results');
+  resultsCard.classList.toggle('all-good', canFuelAllMinions);
+
+  document.getElementById('statusIcon').textContent = canFuelAllMinions ? '✅' : '⚠️';
+  const statusText = document.getElementById('statusText');
+  statusText.textContent = canFuelAllMinions
+    ? `Can fuel all ${target} minions!`
+    : `Can fuel ${maxFuelsCraftable} / ${target} minions`;
+  statusText.className = 'status-text ' + (canFuelAllMinions ? 'ok' : 'warn');
+
+  // Gabagool chain rows
+  let gabagoolHtml = '';
+  gabagoolHtml += infoRow('Crude Gabagool owned', fmt(crudeOwned));
+  if (veryCrudeOwned > 0) {
+    gabagoolHtml += infoRow('Very Crude Gabagool owned', fmt(veryCrudeOwned), `= ${fmt(crudeFromVeryCrude)} Crude Gabagool`);
+  }
+  gabagoolHtml += infoRow('Total Crude Gabagool equivalent', fmt(totalCrudeEquivalent), null, 'highlight');
+  gabagoolHtml += infoRow('Crude Gabagool needed per Hypergolic Gabagool', fmt(CRUDE_GABAGOOL_PER_HYPERGOLIC));
+  gabagoolHtml += infoRow('Hypergolic Gabagool you can craft', fmt(hypergolicCraftable), null, 'highlight');
+  gabagoolHtml += infoRow('Legendary Inferno Minion Fuels craftable', fmt(maxFuelsCraftable), null, 'highlight');
+  document.getElementById('resultsGabagool').innerHTML = gabagoolHtml;
+
+  // Shortfall section
+  if (shortfall > 0) {
+    let sfHtml = '';
+    sfHtml += infoRow('Additional fuels needed', fmt(shortfall), null, 'highlight');
+    sfHtml += infoRow('Extra Crude Gabagool needed', fmt(shortfall * CRUDE_GABAGOOL_PER_HYPERGOLIC));
+    if (!distEntered) {
+      sfHtml += infoRow('Gabagool Distillates needed (total for all minions)', fmt(totalDistillatesNeeded));
+    } else if (extraDistillatesNeeded > 0) {
+      sfHtml += infoRow('More Gabagool Distillates needed', fmt(extraDistillatesNeeded));
+    }
+    if (!blocksEntered) {
+      sfHtml += infoRow('Inferno Fuel Blocks needed (total)', fmt(totalFuelBlocksNeeded), `${totalFuelBlocksNeeded * FUEL_BLOCK_BITS_COST} Bits`);
+    } else if (extraFuelBlocksNeeded > 0) {
+      sfHtml += infoRow('More Inferno Fuel Blocks needed', fmt(extraFuelBlocksNeeded), `${extraFuelBlocksNeeded * FUEL_BLOCK_BITS_COST} Bits`);
+    }
+    document.getElementById('resultsShortfall').innerHTML = sfHtml;
+    document.getElementById('shortfallSection').classList.remove('hidden');
+  } else {
+    document.getElementById('shortfallSection').classList.add('hidden');
+  }
+
+  // Other buy section (when you can already fuel all minions)
+  const needsOtherBuy = canFuelAllMinions && (extraDistillatesNeeded > 0 || extraFuelBlocksNeeded > 0);
+  if (needsOtherBuy) {
+    let obHtml = '';
+    if (extraDistillatesNeeded > 0) obHtml += infoRow('Gabagool Distillates', fmt(extraDistillatesNeeded));
+    if (extraFuelBlocksNeeded > 0) obHtml += infoRow('Inferno Fuel Blocks', fmt(extraFuelBlocksNeeded), `${extraFuelBlocksNeeded * FUEL_BLOCK_BITS_COST} Bits`);
+    document.getElementById('resultsOtherBuy').innerHTML = obHtml;
+    document.getElementById('otherBuySection').classList.remove('hidden');
+  } else {
+    document.getElementById('otherBuySection').classList.add('hidden');
+  }
+
+  // ── SULPHURIC COAL BREAKDOWN ──
+  let scHtml = '';
+  scHtml += infoRow(
+    `Sulphuric Coal needed (${target} fuels × ${SULPHURIC_COAL_PER_HYPERGOLIC} per fuel)`,
+    fmt(totalSulphuricCoalNeeded), null, 'highlight'
+  );
+  scHtml += `<div style="font-size:10px;color:var(--dim);margin:2px 0 10px 12px;">
+    301 per Hypergolic Gabagool: 288 for Fuel Gabagool crafting + 12 for Heavy Gabagool + 1 for Hypergolic
+  </div>`;
+  scHtml += '<hr class="divider">';
+
+  scHtml += `<div class="section-label" style="margin-top:0;">Intermediate crafting layer</div>`;
+  scHtml += `<div style="font-size:10px;color:var(--dim);margin:-4px 0 8px 4px;">
+    Recipe: 4 Enchanted Coal + 1 Enchanted Sulphur → 4 Sulphuric Coal
+  </div>`;
+  scHtml += infoRow('Enchanted Coal required', fmtDec(totalEnchantedCoalNeeded, 0), `${ENCHANTED_COAL_PER_SULPHURIC_COAL} per Sulphuric Coal`);
+  scHtml += infoRow('Enchanted Sulphur required', fmtDec(totalEnchantedSulphurNeeded, 1), `${ENCHANTED_SULPHUR_PER_SULPHURIC_COAL} per Sulphuric Coal`);
+
+  scHtml += '<hr class="divider">';
+  scHtml += `<div class="section-label" style="margin-top:0;">Raw base materials</div>`;
+  scHtml += `<div style="font-size:10px;color:var(--dim);margin:-4px 0 8px 4px;">
+    1 Enchanted Coal = 160 raw Coal &nbsp;·&nbsp; 1 Enchanted Sulphur = 160 raw Sulphur
+  </div>`;
+  scHtml += infoRow('Raw Coal', fmt(totalRawCoalNeeded), `${RAW_COAL_PER_SULPHURIC_COAL} per Sulphuric Coal`, 'muted');
+  scHtml += infoRow('Raw Sulphur', fmt(totalRawSulphurNeeded), `${RAW_SULPHUR_PER_SULPHURIC_COAL} per Sulphuric Coal`, 'muted');
+
+  // SC cost comparison
+  const hasScPrices = pSC > 0 || pEC > 0 || pES > 0 || pRC > 0 || pRS > 0;
+  if (hasScPrices) {
+    scHtml += '<hr class="divider">';
+    scHtml += `<div class="section-label" style="margin-top:0;">Cost comparison — Sulphuric Coal only</div>`;
+    const scRoutes = [];
+    if (pSC > 0) scRoutes.push({ label: 'Buy Sulphuric Coal directly', cost: costSCDirect });
+    if (pEC > 0 || pES > 0) scRoutes.push({ label: 'Craft from Enchanted Coal + Enchanted Sulphur', cost: costSCFromEnchanted });
+    if (pRC > 0 || pRS > 0) scRoutes.push({ label: 'Craft from raw Coal + raw Sulphur', cost: costSCFromRaw });
+    scRoutes.sort((a, b) => a.cost - b.cost);
+    scRoutes.forEach((r, i) => {
+      scHtml += `<div class="sc-route${i === 0 ? ' cheapest' : ''}">
+        <div class="sc-route-label">${i === 0 ? '✅ ' : ''}${r.label}</div>
+        <div class="sc-route-value">${fmtCoins(r.cost)} coins</div>
+      </div>`;
+    });
+  }
+  document.getElementById('scBreakdown').innerHTML = scHtml;
+
+  // ── TOTAL DAILY COST ──
+  const hasCostPrices = pSC > 0 || pEC > 0 || pES > 0 || pRC > 0 || pRS > 0 || pDist > 0 || pBlock > 0;
+  const costCard = document.getElementById('costBreakdown');
+  const noPricesMsg = document.getElementById('noPricesMsg');
+
+  if (!hasCostPrices) {
+    costCard.innerHTML = '';
+    noPricesMsg.classList.remove('hidden');
+  } else {
+    noPricesMsg.classList.add('hidden');
+    const costRoutes = [];
+    if (pSC > 0) costRoutes.push({ label: 'Route: Buy Sulphuric Coal directly', scCost: costSCDirect, total: totalCostDirect });
+    if (pEC > 0 || pES > 0) costRoutes.push({ label: 'Route: Craft Sulphuric Coal from Enchanted materials', scCost: costSCFromEnchanted, total: totalCostEnchanted });
+    if (pRC > 0 || pRS > 0) costRoutes.push({ label: 'Route: Craft Sulphuric Coal from raw materials', scCost: costSCFromRaw, total: totalCostRaw });
+    costRoutes.sort((a, b) => a.total - b.total);
+
+    let costHtml = '';
+    costRoutes.forEach((r, i) => {
+      const isBest = i === 0;
+      const subParts = [`Sulphuric Coal: ${fmtCoins(r.scCost)}`];
+      if (costDistillates > 0) subParts.push(`Distillates: ${fmtCoins(costDistillates)}`);
+      if (costFuelBlocks > 0) subParts.push(`Fuel Blocks: ${fmtCoins(costFuelBlocks)}`);
+      costHtml += `<div class="cost-route${isBest ? ' best' : ''}">
+        <div>
+          <div class="cost-route-label">${isBest ? '🏆 ' : ''}${r.label}</div>
+          <div class="cost-route-sub">${subParts.join('  +  ')}</div>
+        </div>
+        <div class="cost-route-total">${fmtCoins(r.total)} coins</div>
+      </div>`;
+    });
+
+    // Breakdown of other costs
+    if (pDist > 0 && !distEntered && extraDistillatesNeeded > 0) {
+      costHtml += infoRow(
+        `Gabagool Distillates (${fmt(extraDistillatesNeeded)} × ${fmtCoins(pDist)})`,
+        `${fmtCoins(costDistillates)} coins`
+      );
+    }
+    if (pBlock > 0 && !blocksEntered && extraFuelBlocksNeeded > 0) {
+      costHtml += infoRow(
+        `Inferno Fuel Blocks (${fmt(extraFuelBlocksNeeded)} × ${fmtCoins(pBlock)})`,
+        `${fmtCoins(costFuelBlocks)} coins`
+      );
+    }
+
+    costCard.innerHTML = costHtml;
+  }
+}
+
+// ─── LIVE INPUT LISTENERS ─────────────────────────────────────────────────────
+document.querySelectorAll('input').forEach(inp => {
+  inp.addEventListener('input', recalculate);
+});
+
+// ─── INITIAL RENDER ───────────────────────────────────────────────────────────
+recalculate();
+</script>
+
 </body>
 </html>
