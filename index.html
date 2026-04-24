@@ -5,8 +5,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inferno Fuel Calculator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Crimson+Pro:wght@400;600&display=swap" rel="stylesheet">
+<!-- Fonts via jsDelivr CDN - reliable fallback chain -->
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/cinzel@5.0.8/700.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/cinzel@5.0.8/900.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/crimson-pro@5.0.15/400.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fontsource/crimson-pro@5.0.15/600.css" rel="stylesheet">
 <style>
   :root {
     --bg:        #070402;
@@ -33,7 +36,7 @@ html { color-scheme: dark; scroll-behavior: smooth; }
 body {
 background: var(–bg);
 color: var(–text);
-font-family: ‘Crimson Pro’, Georgia, serif;
+font-family: ‘Crimson Pro’, ‘Palatino Linotype’, Palatino, Georgia, serif;
 font-size: 17px;
 min-height: 100vh;
 overflow-x: hidden;
@@ -83,7 +86,7 @@ animation: fadeDown 0.6s ease both;
 }
 
 h1 {
-font-family: ‘Cinzel’, serif;
+font-family: ‘Cinzel’, ‘Trajan Pro’, ‘Times New Roman’, serif;
 font-size: 28px;
 font-weight: 900;
 letter-spacing: 0.14em;
@@ -127,7 +130,7 @@ animation: fadeUp 0.5s ease both;
 
 .card-header {
 display: flex; align-items: center; gap: 8px;
-font-family: ‘Cinzel’, serif;
+font-family: ‘Cinzel’, ‘Trajan Pro’, ‘Times New Roman’, serif;
 font-size: 11px; font-weight: 700;
 letter-spacing: 0.12em; text-transform: uppercase;
 color: var(–accent2);
@@ -191,7 +194,7 @@ color: var(–blue);
 border-radius: 10px;
 padding: 10px 18px;
 font-size: 13px; font-weight: 600;
-font-family: ‘Cinzel’, serif;
+font-family: ‘Cinzel’, ‘Trajan Pro’, ‘Times New Roman’, serif;
 letter-spacing: 0.06em;
 cursor: pointer;
 transition: all 0.15s;
@@ -209,7 +212,7 @@ white-space: nowrap;
 
 /* ── SECTION LABELS ── */
 .section-label {
-font-family: ‘Cinzel’, serif;
+font-family: ‘Cinzel’, ‘Trajan Pro’, ‘Times New Roman’, serif;
 font-size: 10px; font-weight: 700;
 letter-spacing: 0.1em; text-transform: uppercase;
 color: var(–dim);
@@ -259,7 +262,7 @@ margin-bottom: 4px;
 }
 .status-icon { font-size: 24px; display: block; margin-bottom: 4px; }
 .status-text {
-font-family: ‘Cinzel’, serif;
+font-family: ‘Cinzel’, ‘Trajan Pro’, ‘Times New Roman’, serif;
 font-size: 13px; font-weight: 700;
 letter-spacing: 0.08em; text-transform: uppercase;
 color: var(–accent2);
@@ -319,7 +322,7 @@ color: var(–dim);
 line-height: 2.1;
 margin-bottom: 24px;
 }
-.recipe-footer strong { color: #7a5030; font-family: ‘Cinzel’, serif; letter-spacing: 0.06em; }
+.recipe-footer strong { color: #7a5030; font-family: ‘Cinzel’, ‘Trajan Pro’, ‘Times New Roman’, serif; letter-spacing: 0.06em; }
 
 /* ── HIDDEN/SHOWN ── */
 .hidden { display: none !important; }
@@ -377,7 +380,7 @@ margin-bottom: 24px;
 ```
 <div class="fetch-row">
   <button class="btn-fetch" id="fetchBtn" onclick="fetchLivePrices()">
-    <span id="fetchIcon">⟳</span> Fetch Live Bazaar Prices
+    <span id="fetchIcon">&#8635;</span> Fetch Live Bazaar Prices
   </button>
   <span class="fetch-status" id="fetchStatus"></span>
 </div>
@@ -572,7 +575,7 @@ async function fetchLivePrices() {
 
   btn.disabled = true;
   btn.classList.add('loading');
-  icon.textContent = '⟳';
+  icon.innerHTML = "&#8635;";
   icon.classList.add('spinner');
   status.className = 'fetch-status loading';
   status.textContent = 'Connecting to Hypixel Bazaar API…';
@@ -627,7 +630,7 @@ async function fetchLivePrices() {
   btn.disabled = false;
   btn.classList.remove('loading');
   icon.classList.remove('spinner');
-  icon.textContent = '⟳';
+  icon.innerHTML = "&#8635;";
 }
 
 // ─── MAIN CALCULATION ─────────────────────────────────────────────────────────
