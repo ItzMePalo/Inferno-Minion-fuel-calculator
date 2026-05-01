@@ -618,16 +618,20 @@ function recalculate() {
     $('veryCrudeHint').textContent = `= ${fmt(crudeFromVery)} Crude`;
   }
 
-  // Hypergolic craftable from crude
-  const hypergolicCraftable = Math.floor(totalCrude / CRUDE_PER_HYPERGOLIC);
+  // q = total crude needed for all target fuels
+  const q = target * CRUDE_PER_HYPERGOLIC;
+  // y = crude you already have (crude owned + VCG converted)
+  const y = totalCrude;
+  // crude still needed to buy
+  const crudeToBuy = Math.max(0, q - y);
 
-  // Fuels each resource can cover
-  const fuelsFromGabagool = hypergolicCraftable;
-  const fuelsFromDist     = distEntered   ? Math.floor(distOwned   / DISTILLATES_PER_FUEL) : Infinity;
-  const fuelsFromBlocks   = blocksEntered ? Math.floor(blocksOwned / FUEL_BLOCKS_PER_FUEL) : Infinity;
+  // For display: how many hypergolics can be crafted from what you have
+  const hypergolicCraftable = Math.floor(y / CRUDE_PER_HYPERGOLIC);
 
-  const maxFuels  = Math.min(fuelsFromGabagool, fuelsFromDist, fuelsFromBlocks);
-  const shortfall = Math.max(0, target - maxFuels);
+  // Fuels each resource can cover (for distillates/blocks check)
+  const fuelsFromDist   = distEntered   ? Math.floor(distOwned   / DISTILLATES_PER_FUEL) : Infinity;
+  const fuelsFromBlocks = blocksEntered ? Math.floor(blocksOwned / FUEL_BLOCKS_PER_FUEL) : Infinity;
+  const maxFuels        = Math.min(Math.floor(y / CRUDE_PER_HYPERGOLIC), fuelsFromDist, fuelsFromBlocks);
 
   // SC totals
   const totalSC = target * SC_PER_HYPERGOLIC;
@@ -646,11 +650,10 @@ function recalculate() {
   // 1. WHAT TO BUY — shown first, prominently
   html += '<div class="group-divider">To buy / source</div>';
 
-  if (shortfall > 0) {
-    const crudeToBuy = shortfall * CRUDE_PER_HYPERGOLIC;
-    html += makeRow('Extra Crude Gabagool needed', fmt(crudeToBuy), `for ${fmt(shortfall)} more fuel${shortfall !== 1 ? 's' : ''}`, 'hi');
+  if (crudeToBuy > 0) {
+    html += makeRow('Crude Gabagool to buy', fmt(crudeToBuy), `need ${fmt(q)} total, you have ${fmt(y)}`, 'hi');
   } else {
-    html += makeRow('Crude Gabagool', '✓ covered', `${fmt(hypergolicCraftable)} Hypergolic craftable`, 'green-hi');
+    html += makeRow('Crude Gabagool', '✓ covered', `you have ${fmt(y)} of ${fmt(q)} needed`, 'green-hi');
   }
 
   if (extraDist > 0) {
@@ -680,8 +683,9 @@ function recalculate() {
   html += '<hr class="div"><div class="group-divider">Your stock summary</div>';
   html += makeRow('Crude Gabagool owned', fmt(crudeOwned));
   if (veryOwned > 0) html += makeRow('Very Crude Gabagool → Crude', fmt(veryOwned), `= ${fmt(crudeFromVery)} Crude`);
-  html += makeRow('Total Crude available', fmt(totalCrude), null, 'plain');
-  html += makeRow('Hypergolic craftable', fmt(hypergolicCraftable));
+  html += makeRow('Total Crude available (y)', fmt(y));
+  html += makeRow('Total Crude required (q)', fmt(q));
+  html += makeRow('Hypergolic craftable from stock', fmt(hypergolicCraftable));
   html += makeRow(
     'Fuels craftable from stock',
     maxFuels === Infinity ? '∞' : fmt(maxFuels),
@@ -689,7 +693,7 @@ function recalculate() {
     maxFuels >= target ? 'green-hi' : 'hi'
   );
 
-  if (shortfall === 0 && extraDist === 0 && extraBlocks === 0) {
+  if (crudeToBuy === 0 && extraDist === 0 && extraBlocks === 0) {
     html += `<hr class="div"><div class="row green-hi">
       <div class="row-label">All ${target} minions fully covered!</div>
       <div class="row-val">✓</div>
