@@ -165,6 +165,8 @@ h1 em {
   margin-top: 5px;
 }
 
+/* text inputs used for expression fields */
+input[type="text"],
 input[type="number"] {
   width: 100%;
   background: var(--surface2);
@@ -178,16 +180,15 @@ input[type="number"] {
   transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
   -webkit-appearance: none;
   appearance: none;
-  autocomplete: off;
 }
+input[type="text"]:focus,
 input[type="number"]:focus {
   border-color: var(--accent);
   background: var(--surface3);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
-input[type="number"]:not(:placeholder-shown):not(:focus) {
-  border-color: var(--border2);
-}
+input[type="text"].expr-ok  { border-color: rgba(48,232,136,0.4); }
+input[type="text"].expr-err { border-color: rgba(255,77,106,0.4); }
 input::placeholder { color: var(--dim); font-style: italic; }
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
@@ -240,8 +241,8 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 /* ── RESULT ROWS ── */
 .row {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 12px; border-radius: var(--radius-sm);
-  margin-bottom: 4px; gap: 12px;
+  padding: 12px 14px; border-radius: var(--radius-sm);
+  margin-bottom: 5px; gap: 12px;
   transition: background 0.1s;
 }
 .row.plain    { background: rgba(255,255,255,0.025); }
@@ -249,8 +250,8 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .row.green-hi { background: var(--green-soft); border: 1px solid rgba(48,232,136,0.18); }
 .row.gold-hi  { background: var(--gold-soft); border: 1px solid rgba(255,204,68,0.18); }
 .row-label {
-  font-size: 14px; color: var(--muted); flex: 1; line-height: 1.4;
-  font-weight: 400;
+  font-size: 16px; color: var(--muted); flex: 1; line-height: 1.4;
+  font-weight: 500;
 }
 .row.hi .row-label       { color: var(--accent2); }
 .row.green-hi .row-label { color: var(--green); }
@@ -258,12 +259,12 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .row-right { text-align: right; flex-shrink: 0; }
 .row-val {
   font-family: 'Space Mono', monospace;
-  font-size: 14px; font-weight: 700; color: var(--text);
+  font-size: 17px; font-weight: 700; color: var(--text);
 }
 .row.hi .row-val       { color: var(--accent2); }
 .row.green-hi .row-val { color: var(--green); }
 .row.gold-hi .row-val  { color: var(--gold); }
-.row-sub { font-size: 10px; color: var(--dim); margin-top: 2px; font-family: 'Space Mono', monospace; }
+.row-sub { font-size: 11px; color: var(--dim); margin-top: 3px; font-family: 'Space Mono', monospace; }
 
 /* ── ROUTE CARDS ── */
 .route-card {
@@ -342,28 +343,31 @@ hr.div { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
       <input type="number" id="numberOfMinions" value="10" min="1" max="25" autocomplete="off" />
     </div>
 
-    <div class="group-divider">Gabagool stock</div>
+    <div class="group-divider">Gabagool stock &nbsp;<span style="font-weight:400;color:var(--dim);font-size:9px;letter-spacing:0">supports math: 1567 + 500</span></div>
     <div class="grid-2">
       <div class="field">
         <label>Crude Gabagool</label>
-        <input type="number" id="crudeGabagool" placeholder="0" min="0" autocomplete="off" />
+        <input type="text" id="crudeGabagool" placeholder="0 or 1200 + 300" autocomplete="off" />
+        <div class="hint" id="crudeHint"></div>
       </div>
       <div class="field">
         <label>Very Crude Gabagool</label>
-        <input type="number" id="veryCrudeGabagool" placeholder="0" min="0" autocomplete="off" />
+        <input type="text" id="veryCrudeGabagool" placeholder="0 or 140 + 20" autocomplete="off" />
         <div class="hint" id="veryCrudeHint"></div>
       </div>
     </div>
 
-    <div class="group-divider">Items you already own</div>
+    <div class="group-divider">Items you already own &nbsp;<span style="font-weight:400;color:var(--dim);font-size:9px;letter-spacing:0">supports math · leave blank = buying all</span></div>
     <div class="grid-2">
       <div class="field">
         <label>Gabagool Distillates</label>
-        <input type="number" id="distillatesOwned" placeholder="leave blank = buying all" min="0" autocomplete="off" />
+        <input type="text" id="distillatesOwned" placeholder="blank = buying all" autocomplete="off" />
+        <div class="hint" id="distHint"></div>
       </div>
       <div class="field">
         <label>Inferno Fuel Blocks</label>
-        <input type="number" id="fuelBlocksOwned" placeholder="leave blank = buying all" min="0" autocomplete="off" />
+        <input type="text" id="fuelBlocksOwned" placeholder="blank = buying all" autocomplete="off" />
+        <div class="hint" id="blocksHint"></div>
       </div>
     </div>
   </div>
@@ -467,13 +471,27 @@ const BAZAAR_KEYS = {
 };
 
 // ── HELPERS ──
-const $      = id => document.getElementById(id);
-const numVal = id => { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; };
+const $ = id => document.getElementById(id);
 
-// A field is "user-filled" only if the user actually typed something —
-// we check .value !== '' after trimming, AND the element wasn't just
-// autofilled with its placeholder text.
-const isFilled = id => $(id).value.trim() !== '';
+// Safe expression evaluator: allows digits, spaces, +, -, *, /, (, ), .
+// Returns { value: number, ok: bool, display: string }
+function evalExpr(raw) {
+  const str = (raw || '').trim();
+  if (str === '') return { value: 0, ok: null, display: '' }; // blank = not entered
+  // Whitelist only safe chars
+  if (!/^[\d\s\+\-\*\/\(\)\.]+$/.test(str)) return { value: 0, ok: false, display: '?' };
+  try {
+    // eslint-disable-next-line no-new-func
+    const result = Function('"use strict"; return (' + str + ')')();
+    if (typeof result !== 'number' || !isFinite(result) || result < 0) return { value: 0, ok: false, display: '?' };
+    return { value: Math.floor(result), ok: true, display: Math.floor(result).toLocaleString() };
+  } catch {
+    return { value: 0, ok: false, display: '?' };
+  }
+}
+
+function numVal(id) { const v = parseFloat($(id).value); return isNaN(v) ? 0 : v; }
+function isFilled(id) { return $(id).value.trim() !== ''; }
 
 function fmt(n)       { return Math.floor(n).toLocaleString(); }
 function fmtDec(n, d) { return parseFloat(n.toFixed(d)).toLocaleString(undefined, { maximumFractionDigits: d }); }
@@ -494,6 +512,31 @@ function makeRow(label, val, sub, cls) {
       ${sub ? `<div class="row-sub">${sub}</div>` : ''}
     </div>
   </div>`;
+}
+
+// Update expression input styling + hint
+function applyExpr(inputId, hintId, suffix) {
+  const el   = $(inputId);
+  const hint = $(hintId);
+  const raw  = el.value.trim();
+  if (raw === '') {
+    el.className = ''; hint.textContent = ''; return { value: 0, entered: false };
+  }
+  const result = evalExpr(raw);
+  if (result.ok === false) {
+    el.className = 'expr-err';
+    hint.textContent = 'invalid expression';
+    return { value: 0, entered: true };
+  }
+  // Show evaluated total only if the input contains an operator
+  if (/[\+\-\*\/]/.test(raw)) {
+    el.className = 'expr-ok';
+    hint.textContent = `= ${result.display}${suffix ? ' ' + suffix : ''}`;
+  } else {
+    el.className = '';
+    hint.textContent = '';
+  }
+  return { value: result.value, entered: true };
 }
 
 // ── LIVE PRICES ──
@@ -524,9 +567,7 @@ async function fetchLivePrices() {
     }
 
     function setField(id, price) {
-      if (price > 0) {
-        $(id).value = Number.isInteger(price) ? price : price.toFixed(1);
-      }
+      if (price > 0) $(id).value = Number.isInteger(price) ? price : price.toFixed(1);
     }
 
     setField('priceSulphuricCoal',      instasell(BAZAAR_KEYS.sulphuricCoal));
@@ -534,7 +575,7 @@ async function fetchLivePrices() {
     setField('priceEnchantedSulphur',   instasell(BAZAAR_KEYS.enchantedSulphur));
     setField('priceGabagoolDistillate', instasell(BAZAAR_KEYS.gabagoolDistillate));
 
-    const t = new Date();
+    const t  = new Date();
     const ts = `${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}:${String(t.getSeconds()).padStart(2,'0')}`;
     timeEl.textContent = `Fetched at ${ts} · Fuel Block is Bits Shop only — enter manually`;
     timeEl.classList.remove('hidden');
@@ -553,93 +594,104 @@ async function fetchLivePrices() {
 
 // ── MAIN CALCULATION ──
 function recalculate() {
-  const target      = Math.max(1, numVal('numberOfMinions') || 10);
-  const crudeOwned  = numVal('crudeGabagool');
-  const veryOwned   = numVal('veryCrudeGabagool');
+  const target = Math.max(1, numVal('numberOfMinions') || 10);
 
-  // Only count distillates/blocks as "owned" if the user actually typed a number
-  const distEntered   = isFilled('distillatesOwned');
-  const blocksEntered = isFilled('fuelBlocksOwned');
-  const distOwned     = distEntered   ? numVal('distillatesOwned')  : 0;
-  const blocksOwned   = blocksEntered ? numVal('fuelBlocksOwned')   : 0;
+  // Evaluate expression inputs
+  const crudeRes  = applyExpr('crudeGabagool',    'crudeHint',  'Crude');
+  const veryRes   = applyExpr('veryCrudeGabagool', 'veryCrudeHint', 'Very Crude');
+  const distRes   = applyExpr('distillatesOwned',  'distHint',   'Distillates');
+  const blocksRes = applyExpr('fuelBlocksOwned',   'blocksHint', 'Fuel Blocks');
 
-  // Crude from Very Crude
+  const crudeOwned  = crudeRes.value;
+  const veryOwned   = veryRes.value;
+  const distOwned   = distRes.value;
+  const blocksOwned = blocksRes.value;
+  const distEntered   = distRes.entered;
+  const blocksEntered = blocksRes.entered;
+
+  // Crude calculation
   const crudeFromVery = veryOwned * CRUDE_PER_VERY_CRUDE;
   const totalCrude    = crudeOwned + crudeFromVery;
 
-  $('veryCrudeHint').textContent = veryOwned > 0
-    ? `= ${fmt(crudeFromVery)} Crude Gabagool`
-    : '';
+  // Update VCG hint only if no operator (applyExpr handles operator case)
+  if (veryOwned > 0 && !/[\+\-\*\/]/.test(($('veryCrudeGabagool').value || ''))) {
+    $('veryCrudeHint').textContent = `= ${fmt(crudeFromVery)} Crude`;
+  }
 
-  // How many complete Hypergolic Gabagool can we craft?
+  // Hypergolic craftable from crude
   const hypergolicCraftable = Math.floor(totalCrude / CRUDE_PER_HYPERGOLIC);
 
-  // How many fuels does each resource limit us to?
+  // Fuels each resource can cover
   const fuelsFromGabagool = hypergolicCraftable;
   const fuelsFromDist     = distEntered   ? Math.floor(distOwned   / DISTILLATES_PER_FUEL) : Infinity;
   const fuelsFromBlocks   = blocksEntered ? Math.floor(blocksOwned / FUEL_BLOCKS_PER_FUEL) : Infinity;
 
-  // Actual fuels we can make with what we have
   const maxFuels  = Math.min(fuelsFromGabagool, fuelsFromDist, fuelsFromBlocks);
   const shortfall = Math.max(0, target - maxFuels);
 
-  // Total SC needed for all target fuels
+  // SC totals
   const totalSC = target * SC_PER_HYPERGOLIC;
   const totalEC = totalSC * EC_PER_SC;
   const totalES = totalSC * ES_PER_SC;
 
-  // Extra distillates / blocks needed beyond what the user owns
+  // Extra items needed
   const totalDistNeeded  = target * DISTILLATES_PER_FUEL;
   const totalBlockNeeded = target * FUEL_BLOCKS_PER_FUEL;
   const extraDist   = distEntered   ? Math.max(0, totalDistNeeded  - distOwned)  : totalDistNeeded;
   const extraBlocks = blocksEntered ? Math.max(0, totalBlockNeeded - blocksOwned) : totalBlockNeeded;
 
-  // ── BUILD RESULTS HTML ──
+  // ── BUILD RESULTS ──
   let html = '';
 
-  html += '<div class="group-divider">Gabagool chain</div>';
-  html += makeRow('Crude Gabagool owned', fmt(crudeOwned));
-  if (veryOwned > 0) {
-    html += makeRow('Very Crude Gabagool owned', fmt(veryOwned), `= ${fmt(crudeFromVery)} Crude Gabagool`);
-  }
-  html += makeRow('Total Crude Gabagool available', fmt(totalCrude), null, 'hi');
-  html += makeRow('Hypergolic Gabagool craftable', fmt(hypergolicCraftable), null, 'hi');
-  html += makeRow(
-    'Fuels craftable from your stock',
-    maxFuels === Infinity ? '∞' : fmt(maxFuels),
-    `need ${fmt(target)}`,
-    maxFuels >= target ? 'green-hi' : 'hi'
-  );
-
-  html += '<hr class="div"><div class="group-divider">To buy / source</div>';
+  // 1. WHAT TO BUY — shown first, prominently
+  html += '<div class="group-divider">To buy / source</div>';
 
   if (shortfall > 0) {
-    html += makeRow('Additional fuels still needed', fmt(shortfall), null, 'hi');
-    html += makeRow('Extra Crude Gabagool needed', fmt(shortfall * CRUDE_PER_HYPERGOLIC));
+    const crudeToBuy = shortfall * CRUDE_PER_HYPERGOLIC;
+    html += makeRow('Extra Crude Gabagool needed', fmt(crudeToBuy), `for ${fmt(shortfall)} more fuel${shortfall !== 1 ? 's' : ''}`, 'hi');
+  } else {
+    html += makeRow('Crude Gabagool', '✓ covered', `${fmt(hypergolicCraftable)} Hypergolic craftable`, 'green-hi');
   }
 
   if (extraDist > 0) {
     html += makeRow('Gabagool Distillates to buy', fmt(extraDist));
   } else if (distEntered) {
     html += makeRow('Gabagool Distillates', '✓ covered', null, 'green-hi');
+  } else {
+    html += makeRow('Gabagool Distillates to buy', fmt(totalDistNeeded), 'none owned');
   }
 
   if (extraBlocks > 0) {
     html += makeRow('Inferno Fuel Blocks to buy', fmt(extraBlocks), `${extraBlocks * FUEL_BLOCK_BITS} Bits`);
   } else if (blocksEntered) {
     html += makeRow('Inferno Fuel Blocks', '✓ covered', null, 'green-hi');
+  } else {
+    html += makeRow('Inferno Fuel Blocks to buy', fmt(totalBlockNeeded), `${totalBlockNeeded * FUEL_BLOCK_BITS} Bits · none owned`);
   }
 
+  // 2. SULPHURIC COAL
   html += '<hr class="div"><div class="group-divider">Sulphuric Coal — pick one route</div>';
-  html += makeRow(`SC needed total (${target} × ${SC_PER_HYPERGOLIC})`, fmt(totalSC), null, 'hi');
-  html += makeRow('Route A — Buy Sulphuric Coal directly', fmt(totalSC));
-  html += makeRow('Route B — Enchanted Coal needed', fmt(totalEC), `${EC_PER_SC} EC per SC`);
-  html += makeRow('Route B — Enchanted Sulphur needed', fmtDec(totalES, 1), `${ES_PER_SC} ES per SC`);
+  html += makeRow(`Total SC needed (${target} × ${SC_PER_HYPERGOLIC})`, fmt(totalSC), null, 'hi');
+  html += makeRow('Route A — Buy SC directly', fmt(totalSC));
+  html += makeRow('Route B — Enchanted Coal', fmt(totalEC), `${EC_PER_SC} EC per SC`);
+  html += makeRow('Route B — Enchanted Sulphur', fmtDec(totalES, 1), `${ES_PER_SC} ES per SC`);
+
+  // 3. YOUR STOCK SUMMARY — at the bottom for reference
+  html += '<hr class="div"><div class="group-divider">Your stock summary</div>';
+  html += makeRow('Crude Gabagool owned', fmt(crudeOwned));
+  if (veryOwned > 0) html += makeRow('Very Crude Gabagool → Crude', fmt(veryOwned), `= ${fmt(crudeFromVery)} Crude`);
+  html += makeRow('Total Crude available', fmt(totalCrude), null, 'plain');
+  html += makeRow('Hypergolic craftable', fmt(hypergolicCraftable));
+  html += makeRow(
+    'Fuels craftable from stock',
+    maxFuels === Infinity ? '∞' : fmt(maxFuels),
+    `need ${fmt(target)}`,
+    maxFuels >= target ? 'green-hi' : 'hi'
+  );
 
   if (shortfall === 0 && extraDist === 0 && extraBlocks === 0) {
-    html += `<hr class="div">
-    <div class="row green-hi">
-      <div class="row-label">All ${target} minions covered — just pick your SC route above!</div>
+    html += `<hr class="div"><div class="row green-hi">
+      <div class="row-label">All ${target} minions fully covered!</div>
       <div class="row-val">✓</div>
     </div>`;
   }
@@ -652,7 +704,6 @@ function recalculate() {
   const pES   = numVal('priceEnchantedSulphur');
   const pDist = numVal('priceGabagoolDistillate');
   const pBlk  = numVal('priceInfernoFuelBlock');
-
   const hasPrices = pSC > 0 || pEC > 0 || pES > 0 || pDist > 0 || pBlk > 0;
 
   if (!hasPrices) {
@@ -664,25 +715,13 @@ function recalculate() {
 
   const costSCDirect = totalSC * pSC;
   const costSCEnch   = totalEC * pEC + totalES * pES;
-  const costDist     = !distEntered   ? extraDist   * pDist : 0;
-  const costBlk      = !blocksEntered ? extraBlocks * pBlk  : 0;
+  const costDist     = extraDist   * pDist;
+  const costBlk      = extraBlocks * pBlk;
   const otherCosts   = costDist + costBlk;
 
   const routes = [];
-  if (pSC > 0) {
-    routes.push({
-      label: 'Buy Sulphuric Coal directly',
-      scCost: costSCDirect,
-      total: costSCDirect + otherCosts,
-    });
-  }
-  if (pEC > 0 || pES > 0) {
-    routes.push({
-      label: 'Craft SC from Enchanted Coal + Sulphur',
-      scCost: costSCEnch,
-      total: costSCEnch + otherCosts,
-    });
-  }
+  if (pSC > 0) routes.push({ label: 'Buy Sulphuric Coal directly', scCost: costSCDirect, total: costSCDirect + otherCosts });
+  if (pEC > 0 || pES > 0) routes.push({ label: 'Craft SC from Enchanted Coal + Sulphur', scCost: costSCEnch, total: costSCEnch + otherCosts });
   routes.sort((a, b) => a.total - b.total);
 
   let costHtml = '';
@@ -704,12 +743,11 @@ function recalculate() {
 }
 
 // ── INIT ──
-// Clear all inputs on load to prevent browser autofill ghost values
 window.addEventListener('load', () => {
-  const inputsToClear = ['crudeGabagool', 'veryCrudeGabagool', 'distillatesOwned', 'fuelBlocksOwned',
-    'priceSulphuricCoal', 'priceEnchantedCoal', 'priceEnchantedSulphur',
-    'priceGabagoolDistillate', 'priceInfernoFuelBlock'];
-  inputsToClear.forEach(id => { $(id).value = ''; });
+  // Clear everything to prevent ghost autofill
+  ['crudeGabagool','veryCrudeGabagool','distillatesOwned','fuelBlocksOwned',
+   'priceSulphuricCoal','priceEnchantedCoal','priceEnchantedSulphur',
+   'priceGabagoolDistillate','priceInfernoFuelBlock'].forEach(id => { $(id).value = ''; });
   recalculate();
 });
 
